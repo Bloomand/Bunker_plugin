@@ -1,0 +1,668 @@
+[22:34:38] [ServerMain/INFO]: [bootstrap] Running Java 25 (OpenJDK 64-Bit Server VM 25.0.4.1+1-LTS; Eclipse Adoptium Temurin-25.0.4.1+1) on Mac OS X 13.7.8 (x86_64)
+[22:34:38] [ServerMain/INFO]: [bootstrap] Loading Paper 26.2-129-ver/26.2@9240f58 (2026-09-23T18:49:01Z) for Minecraft 26.2
+[22:34:38] [ServerMain/INFO]: [PluginInitializerManager] Initializing plugins...
+[22:34:45] [ServerMain/INFO]: [PluginInitializerManager] Initialized 1 plugin
+[22:34:45] [ServerMain/INFO]: [PluginInitializerManager] Bukkit plugins (1):
+ - Bunker (0.1.0)
+[22:35:19] [DataConverter MCTypeRegistry init thread/INFO]: [ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry] Initialising converters for DataConverter...
+[22:35:21] [ServerMain/INFO]: Environment: Environment[sessionHost=https://sessionserver.mojang.com, servicesHost=https://api.minecraftservices.com, profilesHost=https://api.mojang.com, name=PROD]
+[22:35:27] [DataConverter MCTypeRegistry init thread/INFO]: [ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry] Finished initialising converters for DataConverter in 7 937,9ms
+[22:35:45] [ServerMain/INFO]: Loaded 1585 recipes
+[22:35:45] [ServerMain/INFO]: Loaded 1688 advancements
+[22:35:46] [Server thread/INFO]: Starting minecraft server version 26.2
+[22:35:46] [Server thread/INFO]: Loading properties
+[22:35:47] [Server thread/INFO]: This server is running Paper version 26.2-129-ver/26.2@9240f58 (2026-09-23T18:49:01Z) (Implementing API version 26.2.build.129-stable)
+[22:35:47] [Server thread/INFO]: [spark] This server bundles the spark profiler. For more information please visit https://docs.papermc.io/paper/profiling
+[22:35:48] [Server thread/INFO]: Server Ping Player Sample Count: 12
+[22:35:48] [Server thread/INFO]: Using 4 threads for Netty based IO
+[22:35:51] [Server thread/INFO]: [MoonriseCommon] Paper is using 1 worker threads, 1 I/O threads
+[22:35:55] [Server thread/INFO]: Default game type: SURVIVAL
+[22:35:55] [Server thread/INFO]: Generating keypair
+[22:35:55] [Server thread/INFO]: Starting Minecraft server on *:25565
+[22:35:59] [Server thread/INFO]: Paper: Using Java compression from Velocity.
+[22:35:59] [Server thread/INFO]: Paper: Using Java cipher from Velocity.
+[22:36:00] [Server thread/INFO]: [Bunker] Loading server plugin Bunker v0.1.0
+[22:36:00] [Server thread/WARN]: **** SERVER IS RUNNING IN OFFLINE/INSECURE MODE!
+[22:36:00] [Server thread/WARN]: The server will make no attempt to authenticate usernames. Beware.
+[22:36:00] [Server thread/WARN]: While this makes the game possible to play without internet access, it also opens up the ability for hackers to connect with any username they choose.
+[22:36:00] [Server thread/WARN]: To change this, set "online-mode" to "true" in the server.properties file.
+[22:36:00] [Server thread/INFO]: Preparing level "world"
+[22:36:05] [Server thread/INFO]: Loading 0 persistent chunks for level 'minecraft:overworld'...
+[22:36:05] [Server thread/INFO]: Preparing spawn area: 100%
+[22:36:05] [Server thread/INFO]: Prepared spawn area in 8 ms
+[22:36:05] [Server thread/INFO]: Loading 0 persistent chunks for level 'minecraft:the_nether'...
+[22:36:05] [Server thread/INFO]: Preparing spawn area: 100%
+[22:36:05] [Server thread/INFO]: Prepared spawn area in 1 ms
+[22:36:05] [Server thread/INFO]: Loading 0 persistent chunks for level 'minecraft:the_end'...
+[22:36:05] [Server thread/INFO]: Prepared spawn area in 0 ms
+[22:36:05] [Server thread/INFO]: Done preparing level "world" (5.145s)
+[22:36:06] [Server thread/INFO]: [Bunker] Enabling Bunker v0.1.0
+[22:36:06] [Server thread/INFO]: [Bunker] Загружено категорий характеристик: 7
+[22:36:06] [Server thread/INFO]: [Bunker] Загружено описаний катастроф: 8
+[22:36:06] [Server thread/INFO]: [Bunker] Bunker включён!
+[22:36:08] [Server thread/INFO]: [spark] Starting background profiler...
+[22:36:08] [Server thread/INFO]: [spark] The async-profiler engine is not supported for your os/arch (macosx/x86_64), so the built-in Java engine will be used instead.
+[22:36:09] [Server thread/INFO]: Saving chunks for level 'ServerLevel[world]'/minecraft:overworld
+[22:36:09] [Server thread/INFO]: Saving chunks for level 'ServerLevel[world]'/minecraft:the_nether
+[22:36:09] [Server thread/INFO]: Saving chunks for level 'ServerLevel[world]'/minecraft:the_end
+[22:36:10] [Server thread/INFO]: ThreadedAnvilChunkStorage (world): All chunks are saved
+[22:36:10] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[22:36:10] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[22:36:10] [Server thread/INFO]: ThreadedAnvilChunkStorage: All dimensions are saved
+[22:36:10] [Server thread/INFO]: Running delayed init tasks
+[22:36:10] [Server thread/INFO]: Done (105.479s)! For help, type "help"
+[22:36:11] [Server thread/ERROR]: Command exception: /stop
+java.lang.NullPointerException: Cannot invoke "net.minecraft.server.level.ServerLevel.getGameRules()" because the return value of "net.minecraft.commands.CommandSourceStack.getLevel()" is null
+	at net.minecraft.commands.Commands.executeCommandInContext(Commands.java:463) ~[paper-26.2.jar:26.2-129-9240f58]
+	at net.minecraft.commands.Commands.performCommand(Commands.java:378) ~[paper-26.2.jar:26.2-129-9240f58]
+	at net.minecraft.commands.Commands.performCommand(Commands.java:366) ~[paper-26.2.jar:26.2-129-9240f58]
+	at net.minecraft.commands.Commands.performPrefixedCommand(Commands.java:357) ~[paper-26.2.jar:26.2-129-9240f58]
+	at net.minecraft.server.dedicated.DedicatedServer.handleConsoleInputs(DedicatedServer.java:574) ~[paper-26.2.jar:26.2-129-9240f58]
+	at net.minecraft.server.dedicated.DedicatedServer.tickConnection(DedicatedServer.java:530) ~[paper-26.2.jar:26.2-129-9240f58]
+	at net.minecraft.server.MinecraftServer.tickChildren(MinecraftServer.java:1837) ~[paper-26.2.jar:26.2-129-9240f58]
+	at net.minecraft.server.MinecraftServer.tickServer(MinecraftServer.java:1620) ~[paper-26.2.jar:26.2-129-9240f58]
+	at net.minecraft.server.dedicated.DedicatedServer.tickServer(DedicatedServer.java:404) ~[paper-26.2.jar:26.2-129-9240f58]
+	at net.minecraft.server.MinecraftServer.processPacketsAndTick(MinecraftServer.java:1678) ~[paper-26.2.jar:26.2-129-9240f58]
+	at net.minecraft.server.MinecraftServer.runServer(MinecraftServer.java:1348) ~[paper-26.2.jar:26.2-129-9240f58]
+	at net.minecraft.server.MinecraftServer.lambda$spin$0(MinecraftServer.java:303) ~[paper-26.2.jar:26.2-129-9240f58]
+	at java.base/java.lang.Thread.run(Thread.java:1474) ~[?:?]
+[22:36:12] [Server thread/INFO]: An unexpected error occurred while trying to execute that command
+[22:36:31] [User Authenticator #0/INFO]: UUID of player bloomand is dff37232-057f-3d78-9c41-8a485ffe97f1
+[22:36:34] [User Authenticator #1/INFO]: UUID of player blub1 is 0da41975-a43a-3396-a499-231db18fb5ea
+[22:36:57] [Paper Watchdog Thread/ERROR]: --- DO NOT REPORT THIS TO PAPER - THIS IS NOT A BUG OR A CRASH  - 26.2-129-9240f58 (MC: 26.2) ---
+[22:36:57] [Paper Watchdog Thread/ERROR]: The server has not responded for 10 seconds! Creating thread dump
+[22:36:57] [Paper Watchdog Thread/ERROR]: ------------------------------
+[22:36:57] [Paper Watchdog Thread/ERROR]: Server thread dump (Look for plugins here before reporting to Paper!):
+[22:36:58] [Paper Watchdog Thread/ERROR]: ------------------------------
+[22:36:58] [Paper Watchdog Thread/ERROR]: Current Thread: Server thread
+[22:36:58] [Paper Watchdog Thread/ERROR]: 	PID: 48 | Suspended: false | Native: false | State: RUNNABLE
+[22:36:58] [Paper Watchdog Thread/ERROR]: 	Stack:
+[22:36:58] [Paper Watchdog Thread/ERROR]: 		org.bukkit.craftbukkit.entity.CraftEntityTypes.<clinit>(CraftEntityTypes.java:319)
+[22:36:58] [Paper Watchdog Thread/ERROR]: 		org.bukkit.craftbukkit.entity.CraftEntity.getEntity(CraftEntity.java:139)
+[22:36:58] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.Entity.getBukkitEntity(Entity.java:211)
+[22:36:58] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.Entity.setAirSupply(Entity.java:3788)
+[22:36:58] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.Entity.load(Entity.java:2803)
+[22:36:58] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.lambda$create$1(EntityType.java:395)
+[22:36:58] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType$$Lambda/0x000000014657a338.accept(Unknown Source)
+[22:36:58] [Paper Watchdog Thread/ERROR]: 		net.minecraft.util.Util.ifElse(Util.java:745)
+[22:36:58] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.create(EntityType.java:390)
+[22:36:58] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.create(EntityType.java:385)
+[22:36:58] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.loadStaticEntity(EntityType.java:513)
+[22:36:58] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.loadEntityRecursive(EntityType.java:465)
+[22:36:58] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.loadEntityRecursive(EntityType.java:459)
+[22:36:58] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.lambda$loadEntitiesRecursive$0(EntityType.java:495)
+[22:36:58] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType$$Lambda/0x000000014656d938.accept(Unknown Source)
+[22:36:58] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.ReferencePipeline$11$1.accept(ReferencePipeline.java:489)
+[22:36:58] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:197)
+[22:36:58] [Paper Watchdog Thread/ERROR]: 		com.google.common.collect.Streams$1Splitr.tryAdvance(Streams.java:489)
+[22:36:58] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.Spliterator.forEachRemaining(Spliterator.java:332)
+[22:36:58] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+[22:36:58] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:560)
+[22:36:58] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.ReduceOps$ReduceOp.evaluateSequential(ReduceOps.java:921)
+[22:36:58] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:265)
+[22:36:58] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.ReferencePipeline.collect(ReferencePipeline.java:723)
+[22:36:58] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.moonrise.patches.chunk_system.level.entity.ChunkEntitySlices.readEntities(ChunkEntitySlices.java:90)
+[22:36:58] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.moonrise.patches.chunk_system.scheduling.NewChunkHolder.loadInEntityChunk(NewChunkHolder.java:122)
+[22:36:58] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.moonrise.patches.chunk_system.scheduling.ChunkHolderManager.getOrCreateEntityChunk(ChunkHolderManager.java:1047)
+[22:36:58] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.ChunkFullTask.run(ChunkFullTask.java:84)
+[22:36:58] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.concurrentutil.executor.queue.PrioritisedTaskQueue$PrioritisedQueuedTask.execute(PrioritisedTaskQueue.java:345)
+[22:36:58] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.concurrentutil.executor.queue.PrioritisedTaskQueue.executeTask(PrioritisedTaskQueue.java:126)
+[22:36:58] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.moonrise.patches.chunk_system.scheduling.ChunkTaskScheduler.executeAllRecentlyQueuedMainThreadTasks(ChunkTaskScheduler.java:349)
+[22:36:58] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer.runAllTasksAtTickStart(MinecraftServer.java:1209)
+[22:36:58] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer.processPacketsAndTick(MinecraftServer.java:1677)
+[22:36:58] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer.runServer(MinecraftServer.java:1348)
+[22:36:58] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer.lambda$spin$0(MinecraftServer.java:303)
+[22:36:58] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer$$Lambda/0x000000014619ea38.run(Unknown Source)
+[22:36:58] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.Thread.runWith(Thread.java:1487)
+[22:36:58] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.Thread.run(Thread.java:1474)
+[22:36:58] [Paper Watchdog Thread/ERROR]: ------------------------------
+[22:36:58] [Paper Watchdog Thread/ERROR]: --- DO NOT REPORT THIS TO PAPER - THIS IS NOT A BUG OR A CRASH ---
+[22:36:58] [Paper Watchdog Thread/ERROR]: ------------------------------
+[22:36:58] [spark-monitoring-1-thread-1/WARN]: [spark] Timed out waiting for world statistics
+[22:37:02] [Paper Watchdog Thread/ERROR]: --- DO NOT REPORT THIS TO PAPER - THIS IS NOT A BUG OR A CRASH  - 26.2-129-9240f58 (MC: 26.2) ---
+[22:37:02] [Paper Watchdog Thread/ERROR]: The server has not responded for 15 seconds! Creating thread dump
+[22:37:02] [Paper Watchdog Thread/ERROR]: ------------------------------
+[22:37:02] [Paper Watchdog Thread/ERROR]: Server thread dump (Look for plugins here before reporting to Paper!):
+[22:37:02] [Paper Watchdog Thread/ERROR]: ------------------------------
+[22:37:02] [Paper Watchdog Thread/ERROR]: Current Thread: Server thread
+[22:37:02] [Paper Watchdog Thread/ERROR]: 	PID: 48 | Suspended: false | Native: false | State: RUNNABLE
+[22:37:02] [Paper Watchdog Thread/ERROR]: 	Stack:
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.invoke.MethodType.checkPtypes(MethodType.java:201)
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.invoke.MethodType.makeImpl(MethodType.java:401)
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.invoke.MethodType.methodType(MethodType.java:375)
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.invoke.MethodHandleNatives.findMethodHandleType(MethodHandleNatives.java:387)
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		org.bukkit.craftbukkit.entity.CraftEntityTypes.<clinit>(CraftEntityTypes.java:325)
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		org.bukkit.craftbukkit.entity.CraftEntity.getEntity(CraftEntity.java:139)
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.Entity.getBukkitEntity(Entity.java:211)
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.Entity.setAirSupply(Entity.java:3788)
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.Entity.load(Entity.java:2803)
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.lambda$create$1(EntityType.java:395)
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType$$Lambda/0x000000014657a338.accept(Unknown Source)
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		net.minecraft.util.Util.ifElse(Util.java:745)
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.create(EntityType.java:390)
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.create(EntityType.java:385)
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.loadStaticEntity(EntityType.java:513)
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.loadEntityRecursive(EntityType.java:465)
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.loadEntityRecursive(EntityType.java:459)
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.lambda$loadEntitiesRecursive$0(EntityType.java:495)
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType$$Lambda/0x000000014656d938.accept(Unknown Source)
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.ReferencePipeline$11$1.accept(ReferencePipeline.java:489)
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:197)
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		com.google.common.collect.Streams$1Splitr.tryAdvance(Streams.java:489)
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.Spliterator.forEachRemaining(Spliterator.java:332)
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:560)
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.ReduceOps$ReduceOp.evaluateSequential(ReduceOps.java:921)
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:265)
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.ReferencePipeline.collect(ReferencePipeline.java:723)
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.moonrise.patches.chunk_system.level.entity.ChunkEntitySlices.readEntities(ChunkEntitySlices.java:90)
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.moonrise.patches.chunk_system.scheduling.NewChunkHolder.loadInEntityChunk(NewChunkHolder.java:122)
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.moonrise.patches.chunk_system.scheduling.ChunkHolderManager.getOrCreateEntityChunk(ChunkHolderManager.java:1047)
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.ChunkFullTask.run(ChunkFullTask.java:84)
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.concurrentutil.executor.queue.PrioritisedTaskQueue$PrioritisedQueuedTask.execute(PrioritisedTaskQueue.java:345)
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.concurrentutil.executor.queue.PrioritisedTaskQueue.executeTask(PrioritisedTaskQueue.java:126)
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.moonrise.patches.chunk_system.scheduling.ChunkTaskScheduler.executeAllRecentlyQueuedMainThreadTasks(ChunkTaskScheduler.java:349)
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer.runAllTasksAtTickStart(MinecraftServer.java:1209)
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer.processPacketsAndTick(MinecraftServer.java:1677)
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer.runServer(MinecraftServer.java:1348)
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer.lambda$spin$0(MinecraftServer.java:303)
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer$$Lambda/0x000000014619ea38.run(Unknown Source)
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.Thread.runWith(Thread.java:1487)
+[22:37:03] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.Thread.run(Thread.java:1474)
+[22:37:03] [Paper Watchdog Thread/ERROR]: ------------------------------
+[22:37:03] [Paper Watchdog Thread/ERROR]: --- DO NOT REPORT THIS TO PAPER - THIS IS NOT A BUG OR A CRASH ---
+[22:37:03] [Paper Watchdog Thread/ERROR]: ------------------------------
+[22:37:07] [Paper Watchdog Thread/ERROR]: --- DO NOT REPORT THIS TO PAPER - THIS IS NOT A BUG OR A CRASH  - 26.2-129-9240f58 (MC: 26.2) ---
+[22:37:07] [Paper Watchdog Thread/ERROR]: The server has not responded for 20 seconds! Creating thread dump
+[22:37:07] [Paper Watchdog Thread/ERROR]: ------------------------------
+[22:37:07] [Paper Watchdog Thread/ERROR]: Server thread dump (Look for plugins here before reporting to Paper!):
+[22:37:07] [Paper Watchdog Thread/ERROR]: ------------------------------
+[22:37:07] [Paper Watchdog Thread/ERROR]: Current Thread: Server thread
+[22:37:07] [Paper Watchdog Thread/ERROR]: 	PID: 48 | Suspended: false | Native: false | State: RUNNABLE
+[22:37:07] [Paper Watchdog Thread/ERROR]: 	Stack:
+[22:37:07] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.ClassLoader.defineClass1(Native Method)
+[22:37:07] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.ClassLoader.defineClass(ClassLoader.java:962)
+[22:37:07] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.security.SecureClassLoader.defineClass(SecureClassLoader.java:144)
+[22:37:07] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.net.URLClassLoader.defineClass(URLClassLoader.java:454)
+[22:37:07] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.net.URLClassLoader.findClass(URLClassLoader.java:367)
+[22:37:07] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.ClassLoader.loadClass(ClassLoader.java:557)
+[22:37:07] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.ClassLoader.loadClass(ClassLoader.java:490)
+[22:37:07] [Paper Watchdog Thread/ERROR]: 		org.bukkit.craftbukkit.entity.CraftEntityTypes.<clinit>(CraftEntityTypes.java:337)
+[22:37:07] [Paper Watchdog Thread/ERROR]: 		org.bukkit.craftbukkit.entity.CraftEntity.getEntity(CraftEntity.java:139)
+[22:37:07] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.Entity.getBukkitEntity(Entity.java:211)
+[22:37:07] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.Entity.setAirSupply(Entity.java:3788)
+[22:37:07] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.Entity.load(Entity.java:2803)
+[22:37:07] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.lambda$create$1(EntityType.java:395)
+[22:37:07] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType$$Lambda/0x000000014657a338.accept(Unknown Source)
+[22:37:07] [Paper Watchdog Thread/ERROR]: 		net.minecraft.util.Util.ifElse(Util.java:745)
+[22:37:07] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.create(EntityType.java:390)
+[22:37:07] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.create(EntityType.java:385)
+[22:37:07] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.loadStaticEntity(EntityType.java:513)
+[22:37:07] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.loadEntityRecursive(EntityType.java:465)
+[22:37:07] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.loadEntityRecursive(EntityType.java:459)
+[22:37:07] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.lambda$loadEntitiesRecursive$0(EntityType.java:495)
+[22:37:07] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType$$Lambda/0x000000014656d938.accept(Unknown Source)
+[22:37:07] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.ReferencePipeline$11$1.accept(ReferencePipeline.java:489)
+[22:37:07] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:197)
+[22:37:08] [Paper Watchdog Thread/ERROR]: 		com.google.common.collect.Streams$1Splitr.tryAdvance(Streams.java:489)
+[22:37:08] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.Spliterator.forEachRemaining(Spliterator.java:332)
+[22:37:08] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+[22:37:08] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:560)
+[22:37:08] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.ReduceOps$ReduceOp.evaluateSequential(ReduceOps.java:921)
+[22:37:08] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:265)
+[22:37:08] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.ReferencePipeline.collect(ReferencePipeline.java:723)
+[22:37:08] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.moonrise.patches.chunk_system.level.entity.ChunkEntitySlices.readEntities(ChunkEntitySlices.java:90)
+[22:37:08] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.moonrise.patches.chunk_system.scheduling.NewChunkHolder.loadInEntityChunk(NewChunkHolder.java:122)
+[22:37:08] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.moonrise.patches.chunk_system.scheduling.ChunkHolderManager.getOrCreateEntityChunk(ChunkHolderManager.java:1047)
+[22:37:08] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.ChunkFullTask.run(ChunkFullTask.java:84)
+[22:37:08] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.concurrentutil.executor.queue.PrioritisedTaskQueue$PrioritisedQueuedTask.execute(PrioritisedTaskQueue.java:345)
+[22:37:08] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.concurrentutil.executor.queue.PrioritisedTaskQueue.executeTask(PrioritisedTaskQueue.java:126)
+[22:37:08] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.moonrise.patches.chunk_system.scheduling.ChunkTaskScheduler.executeAllRecentlyQueuedMainThreadTasks(ChunkTaskScheduler.java:349)
+[22:37:08] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer.runAllTasksAtTickStart(MinecraftServer.java:1209)
+[22:37:08] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer.processPacketsAndTick(MinecraftServer.java:1677)
+[22:37:08] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer.runServer(MinecraftServer.java:1348)
+[22:37:08] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer.lambda$spin$0(MinecraftServer.java:303)
+[22:37:08] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer$$Lambda/0x000000014619ea38.run(Unknown Source)
+[22:37:08] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.Thread.runWith(Thread.java:1487)
+[22:37:08] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.Thread.run(Thread.java:1474)
+[22:37:08] [Paper Watchdog Thread/ERROR]: ------------------------------
+[22:37:08] [Paper Watchdog Thread/ERROR]: --- DO NOT REPORT THIS TO PAPER - THIS IS NOT A BUG OR A CRASH ---
+[22:37:08] [Paper Watchdog Thread/ERROR]: ------------------------------
+[22:37:08] [spark-monitoring-1-thread-2/WARN]: [spark] Timed out waiting for world statistics
+[22:37:10] [spark-java-sampler-2-thread-1/WARN]: [spark] Timed out waiting for world statistics
+[22:37:12] [Paper Watchdog Thread/ERROR]: --- DO NOT REPORT THIS TO PAPER - THIS IS NOT A BUG OR A CRASH  - 26.2-129-9240f58 (MC: 26.2) ---
+[22:37:12] [Paper Watchdog Thread/ERROR]: The server has not responded for 25 seconds! Creating thread dump
+[22:37:12] [Paper Watchdog Thread/ERROR]: ------------------------------
+[22:37:12] [Paper Watchdog Thread/ERROR]: Server thread dump (Look for plugins here before reporting to Paper!):
+[22:37:12] [Paper Watchdog Thread/ERROR]: ------------------------------
+[22:37:12] [Paper Watchdog Thread/ERROR]: Current Thread: Server thread
+[22:37:12] [Paper Watchdog Thread/ERROR]: 	PID: 48 | Suspended: false | Native: false | State: RUNNABLE
+[22:37:12] [Paper Watchdog Thread/ERROR]: 	Stack:
+[22:37:12] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.Object.clone(Native Method)
+[22:37:12] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.invoke.MemberName.clone(MemberName.java:691)
+[22:37:12] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.invoke.MemberName$Factory.resolve(MemberName.java:939)
+[22:37:12] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.invoke.MemberName$Factory.resolveOrFail(MemberName.java:986)
+[22:37:12] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.invoke.MethodHandles$Lookup.resolveOrFail(MethodHandles.java:3599)
+[22:37:12] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.invoke.MethodHandles$Lookup.linkMethodHandleConstant(MethodHandles.java:3996)
+[22:37:12] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.invoke.MethodHandleNatives.linkMethodHandleConstant(MethodHandleNatives.java:603)
+[22:37:12] [Paper Watchdog Thread/ERROR]: 		org.bukkit.craftbukkit.entity.CraftEntityTypes.<clinit>(CraftEntityTypes.java:359)
+[22:37:12] [Paper Watchdog Thread/ERROR]: 		org.bukkit.craftbukkit.entity.CraftEntity.getEntity(CraftEntity.java:139)
+[22:37:12] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.Entity.getBukkitEntity(Entity.java:211)
+[22:37:12] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.Entity.setAirSupply(Entity.java:3788)
+[22:37:12] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.Entity.load(Entity.java:2803)
+[22:37:12] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.lambda$create$1(EntityType.java:395)
+[22:37:12] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType$$Lambda/0x000000014657a338.accept(Unknown Source)
+[22:37:12] [Paper Watchdog Thread/ERROR]: 		net.minecraft.util.Util.ifElse(Util.java:745)
+[22:37:12] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.create(EntityType.java:390)
+[22:37:12] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.create(EntityType.java:385)
+[22:37:12] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.loadStaticEntity(EntityType.java:513)
+[22:37:12] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.loadEntityRecursive(EntityType.java:465)
+[22:37:12] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.loadEntityRecursive(EntityType.java:459)
+[22:37:12] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.lambda$loadEntitiesRecursive$0(EntityType.java:495)
+[22:37:12] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType$$Lambda/0x000000014656d938.accept(Unknown Source)
+[22:37:12] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.ReferencePipeline$11$1.accept(ReferencePipeline.java:489)
+[22:37:12] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:197)
+[22:37:12] [Paper Watchdog Thread/ERROR]: 		com.google.common.collect.Streams$1Splitr.tryAdvance(Streams.java:489)
+[22:37:12] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.Spliterator.forEachRemaining(Spliterator.java:332)
+[22:37:13] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+[22:37:13] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:560)
+[22:37:13] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.ReduceOps$ReduceOp.evaluateSequential(ReduceOps.java:921)
+[22:37:13] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:265)
+[22:37:13] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.ReferencePipeline.collect(ReferencePipeline.java:723)
+[22:37:13] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.moonrise.patches.chunk_system.level.entity.ChunkEntitySlices.readEntities(ChunkEntitySlices.java:90)
+[22:37:13] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.moonrise.patches.chunk_system.scheduling.NewChunkHolder.loadInEntityChunk(NewChunkHolder.java:122)
+[22:37:13] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.moonrise.patches.chunk_system.scheduling.ChunkHolderManager.getOrCreateEntityChunk(ChunkHolderManager.java:1047)
+[22:37:13] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.ChunkFullTask.run(ChunkFullTask.java:84)
+[22:37:13] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.concurrentutil.executor.queue.PrioritisedTaskQueue$PrioritisedQueuedTask.execute(PrioritisedTaskQueue.java:345)
+[22:37:13] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.concurrentutil.executor.queue.PrioritisedTaskQueue.executeTask(PrioritisedTaskQueue.java:126)
+[22:37:13] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.moonrise.patches.chunk_system.scheduling.ChunkTaskScheduler.executeAllRecentlyQueuedMainThreadTasks(ChunkTaskScheduler.java:349)
+[22:37:13] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer.runAllTasksAtTickStart(MinecraftServer.java:1209)
+[22:37:13] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer.processPacketsAndTick(MinecraftServer.java:1677)
+[22:37:13] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer.runServer(MinecraftServer.java:1348)
+[22:37:13] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer.lambda$spin$0(MinecraftServer.java:303)
+[22:37:13] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer$$Lambda/0x000000014619ea38.run(Unknown Source)
+[22:37:13] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.Thread.runWith(Thread.java:1487)
+[22:37:13] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.Thread.run(Thread.java:1474)
+[22:37:13] [Paper Watchdog Thread/ERROR]: ------------------------------
+[22:37:13] [Paper Watchdog Thread/ERROR]: --- DO NOT REPORT THIS TO PAPER - THIS IS NOT A BUG OR A CRASH ---
+[22:37:13] [Paper Watchdog Thread/ERROR]: ------------------------------
+[22:37:17] [Paper Watchdog Thread/ERROR]: --- DO NOT REPORT THIS TO PAPER - THIS IS NOT A BUG OR A CRASH  - 26.2-129-9240f58 (MC: 26.2) ---
+[22:37:17] [Paper Watchdog Thread/ERROR]: The server has not responded for 30 seconds! Creating thread dump
+[22:37:17] [Paper Watchdog Thread/ERROR]: ------------------------------
+[22:37:17] [Paper Watchdog Thread/ERROR]: Server thread dump (Look for plugins here before reporting to Paper!):
+[22:37:17] [Paper Watchdog Thread/ERROR]: ------------------------------
+[22:37:17] [Paper Watchdog Thread/ERROR]: Current Thread: Server thread
+[22:37:17] [Paper Watchdog Thread/ERROR]: 	PID: 48 | Suspended: false | Native: false | State: RUNNABLE
+[22:37:17] [Paper Watchdog Thread/ERROR]: 	Stack:
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.invoke.MemberName.clone(MemberName.java:691)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.invoke.MemberName.asConstructor(MemberName.java:584)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.invoke.DirectMethodHandle.makeAllocator(DirectMethodHandle.java:137)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.invoke.DirectMethodHandle.make(DirectMethodHandle.java:132)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.invoke.MethodHandles$Lookup.getDirectConstructorCommon(MethodHandles.java:3967)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.invoke.MethodHandles$Lookup.getDirectConstructor(MethodHandles.java:3960)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.invoke.MethodHandles$Lookup.getDirectMethodForConstant(MethodHandles.java:4046)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.invoke.MethodHandles$Lookup.linkMethodHandleConstant(MethodHandles.java:3997)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.invoke.MethodHandleNatives.linkMethodHandleConstant(MethodHandleNatives.java:603)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		org.bukkit.craftbukkit.entity.CraftEntityTypes.<clinit>(CraftEntityTypes.java:428)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		org.bukkit.craftbukkit.entity.CraftEntity.getEntity(CraftEntity.java:139)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.Entity.getBukkitEntity(Entity.java:211)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.Entity.setAirSupply(Entity.java:3788)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.Entity.load(Entity.java:2803)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.lambda$create$1(EntityType.java:395)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType$$Lambda/0x000000014657a338.accept(Unknown Source)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		net.minecraft.util.Util.ifElse(Util.java:745)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.create(EntityType.java:390)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.create(EntityType.java:385)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.loadStaticEntity(EntityType.java:513)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.loadEntityRecursive(EntityType.java:465)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.loadEntityRecursive(EntityType.java:459)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.lambda$loadEntitiesRecursive$0(EntityType.java:495)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType$$Lambda/0x000000014656d938.accept(Unknown Source)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.ReferencePipeline$11$1.accept(ReferencePipeline.java:489)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:197)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		com.google.common.collect.Streams$1Splitr.tryAdvance(Streams.java:489)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.Spliterator.forEachRemaining(Spliterator.java:332)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:560)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.ReduceOps$ReduceOp.evaluateSequential(ReduceOps.java:921)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:265)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.ReferencePipeline.collect(ReferencePipeline.java:723)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.moonrise.patches.chunk_system.level.entity.ChunkEntitySlices.readEntities(ChunkEntitySlices.java:90)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.moonrise.patches.chunk_system.scheduling.NewChunkHolder.loadInEntityChunk(NewChunkHolder.java:122)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.moonrise.patches.chunk_system.scheduling.ChunkHolderManager.getOrCreateEntityChunk(ChunkHolderManager.java:1047)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.ChunkFullTask.run(ChunkFullTask.java:84)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.concurrentutil.executor.queue.PrioritisedTaskQueue$PrioritisedQueuedTask.execute(PrioritisedTaskQueue.java:345)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.concurrentutil.executor.queue.PrioritisedTaskQueue.executeTask(PrioritisedTaskQueue.java:126)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.moonrise.patches.chunk_system.scheduling.ChunkTaskScheduler.executeAllRecentlyQueuedMainThreadTasks(ChunkTaskScheduler.java:349)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer.runAllTasksAtTickStart(MinecraftServer.java:1209)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer.processPacketsAndTick(MinecraftServer.java:1677)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer.runServer(MinecraftServer.java:1348)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer.lambda$spin$0(MinecraftServer.java:303)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer$$Lambda/0x000000014619ea38.run(Unknown Source)
+[22:37:17] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.Thread.runWith(Thread.java:1487)
+[22:37:18] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.Thread.run(Thread.java:1474)
+[22:37:18] [Paper Watchdog Thread/ERROR]: ------------------------------
+[22:37:18] [Paper Watchdog Thread/ERROR]: --- DO NOT REPORT THIS TO PAPER - THIS IS NOT A BUG OR A CRASH ---
+[22:37:18] [Paper Watchdog Thread/ERROR]: ------------------------------
+[22:37:18] [spark-monitoring-1-thread-3/WARN]: [spark] Timed out waiting for world statistics
+[22:37:22] [Paper Watchdog Thread/ERROR]: --- DO NOT REPORT THIS TO PAPER - THIS IS NOT A BUG OR A CRASH  - 26.2-129-9240f58 (MC: 26.2) ---
+[22:37:22] [Paper Watchdog Thread/ERROR]: The server has not responded for 35 seconds! Creating thread dump
+[22:37:22] [Paper Watchdog Thread/ERROR]: ------------------------------
+[22:37:22] [Paper Watchdog Thread/ERROR]: Server thread dump (Look for plugins here before reporting to Paper!):
+[22:37:22] [Paper Watchdog Thread/ERROR]: ------------------------------
+[22:37:22] [Paper Watchdog Thread/ERROR]: Current Thread: Server thread
+[22:37:22] [Paper Watchdog Thread/ERROR]: 	PID: 48 | Suspended: false | Native: false | State: RUNNABLE
+[22:37:22] [Paper Watchdog Thread/ERROR]: 	Stack:
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/jdk.internal.classfile.impl.SplitConstantPool.writeTo(SplitConstantPool.java:173)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/jdk.internal.classfile.impl.DirectClassBuilder.build(DirectClassBuilder.java:211)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/jdk.internal.classfile.impl.ClassFileImpl.build(ClassFileImpl.java:145)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.invoke.InnerClassLambdaMetafactory.generateInnerClass(InnerClassLambdaMetafactory.java:310)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.invoke.InnerClassLambdaMetafactory.spinInnerClass(InnerClassLambdaMetafactory.java:282)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.invoke.InnerClassLambdaMetafactory.buildCallSite(InnerClassLambdaMetafactory.java:214)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.invoke.LambdaMetafactory.metafactory(LambdaMetafactory.java:354)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.invoke.DirectMethodHandle$Holder.invokeStatic(DirectMethodHandle$Holder)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.invoke.BootstrapMethodInvoker.invoke(BootstrapMethodInvoker.java:134)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.invoke.CallSite.makeSite(CallSite.java:310)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.invoke.MethodHandleNatives.linkCallSiteImpl(MethodHandleNatives.java:250)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.invoke.MethodHandleNatives.linkCallSite(MethodHandleNatives.java:240)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		org.bukkit.craftbukkit.entity.CraftEntityTypes.<clinit>(CraftEntityTypes.java:464)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		org.bukkit.craftbukkit.entity.CraftEntity.getEntity(CraftEntity.java:139)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.Entity.getBukkitEntity(Entity.java:211)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.Entity.setAirSupply(Entity.java:3788)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.Entity.load(Entity.java:2803)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.lambda$create$1(EntityType.java:395)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType$$Lambda/0x000000014657a338.accept(Unknown Source)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		net.minecraft.util.Util.ifElse(Util.java:745)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.create(EntityType.java:390)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.create(EntityType.java:385)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.loadStaticEntity(EntityType.java:513)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.loadEntityRecursive(EntityType.java:465)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.loadEntityRecursive(EntityType.java:459)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.lambda$loadEntitiesRecursive$0(EntityType.java:495)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType$$Lambda/0x000000014656d938.accept(Unknown Source)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.ReferencePipeline$11$1.accept(ReferencePipeline.java:489)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:197)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		com.google.common.collect.Streams$1Splitr.tryAdvance(Streams.java:489)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.Spliterator.forEachRemaining(Spliterator.java:332)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:560)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.ReduceOps$ReduceOp.evaluateSequential(ReduceOps.java:921)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:265)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.ReferencePipeline.collect(ReferencePipeline.java:723)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.moonrise.patches.chunk_system.level.entity.ChunkEntitySlices.readEntities(ChunkEntitySlices.java:90)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.moonrise.patches.chunk_system.scheduling.NewChunkHolder.loadInEntityChunk(NewChunkHolder.java:122)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.moonrise.patches.chunk_system.scheduling.ChunkHolderManager.getOrCreateEntityChunk(ChunkHolderManager.java:1047)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.ChunkFullTask.run(ChunkFullTask.java:84)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.concurrentutil.executor.queue.PrioritisedTaskQueue$PrioritisedQueuedTask.execute(PrioritisedTaskQueue.java:345)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.concurrentutil.executor.queue.PrioritisedTaskQueue.executeTask(PrioritisedTaskQueue.java:126)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.moonrise.patches.chunk_system.scheduling.ChunkTaskScheduler.executeAllRecentlyQueuedMainThreadTasks(ChunkTaskScheduler.java:349)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer.runAllTasksAtTickStart(MinecraftServer.java:1209)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer.processPacketsAndTick(MinecraftServer.java:1677)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer.runServer(MinecraftServer.java:1348)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer.lambda$spin$0(MinecraftServer.java:303)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer$$Lambda/0x000000014619ea38.run(Unknown Source)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.Thread.runWith(Thread.java:1487)
+[22:37:22] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.Thread.run(Thread.java:1474)
+[22:37:22] [Paper Watchdog Thread/ERROR]: ------------------------------
+[22:37:22] [Paper Watchdog Thread/ERROR]: --- DO NOT REPORT THIS TO PAPER - THIS IS NOT A BUG OR A CRASH ---
+[22:37:22] [Paper Watchdog Thread/ERROR]: ------------------------------
+[22:37:27] [Paper Watchdog Thread/ERROR]: --- DO NOT REPORT THIS TO PAPER - THIS IS NOT A BUG OR A CRASH  - 26.2-129-9240f58 (MC: 26.2) ---
+[22:37:27] [Paper Watchdog Thread/ERROR]: The server has not responded for 40 seconds! Creating thread dump
+[22:37:27] [Paper Watchdog Thread/ERROR]: ------------------------------
+[22:37:27] [Paper Watchdog Thread/ERROR]: Server thread dump (Look for plugins here before reporting to Paper!):
+[22:37:28] [Paper Watchdog Thread/ERROR]: ------------------------------
+[22:37:28] [Paper Watchdog Thread/ERROR]: Current Thread: Server thread
+[22:37:28] [Paper Watchdog Thread/ERROR]: 	PID: 48 | Suspended: false | Native: false | State: RUNNABLE
+[22:37:28] [Paper Watchdog Thread/ERROR]: 	Stack:
+[22:37:28] [Paper Watchdog Thread/ERROR]: 		org.bukkit.craftbukkit.entity.CraftEntityTypes.<clinit>(CraftEntityTypes.java:494)
+[22:37:28] [Paper Watchdog Thread/ERROR]: 		org.bukkit.craftbukkit.entity.CraftEntity.getEntity(CraftEntity.java:139)
+[22:37:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.Entity.getBukkitEntity(Entity.java:211)
+[22:37:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.Entity.setAirSupply(Entity.java:3788)
+[22:37:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.Entity.load(Entity.java:2803)
+[22:37:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.lambda$create$1(EntityType.java:395)
+[22:37:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType$$Lambda/0x000000014657a338.accept(Unknown Source)
+[22:37:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.util.Util.ifElse(Util.java:745)
+[22:37:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.create(EntityType.java:390)
+[22:37:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.create(EntityType.java:385)
+[22:37:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.loadStaticEntity(EntityType.java:513)
+[22:37:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.loadEntityRecursive(EntityType.java:465)
+[22:37:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.loadEntityRecursive(EntityType.java:459)
+[22:37:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType.lambda$loadEntitiesRecursive$0(EntityType.java:495)
+[22:37:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.EntityType$$Lambda/0x000000014656d938.accept(Unknown Source)
+[22:37:28] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.ReferencePipeline$11$1.accept(ReferencePipeline.java:489)
+[22:37:28] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:197)
+[22:37:28] [Paper Watchdog Thread/ERROR]: 		com.google.common.collect.Streams$1Splitr.tryAdvance(Streams.java:489)
+[22:37:28] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.Spliterator.forEachRemaining(Spliterator.java:332)
+[22:37:28] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+[22:37:28] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:560)
+[22:37:28] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.ReduceOps$ReduceOp.evaluateSequential(ReduceOps.java:921)
+[22:37:28] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:265)
+[22:37:28] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.stream.ReferencePipeline.collect(ReferencePipeline.java:723)
+[22:37:28] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.moonrise.patches.chunk_system.level.entity.ChunkEntitySlices.readEntities(ChunkEntitySlices.java:90)
+[22:37:28] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.moonrise.patches.chunk_system.scheduling.NewChunkHolder.loadInEntityChunk(NewChunkHolder.java:122)
+[22:37:28] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.moonrise.patches.chunk_system.scheduling.ChunkHolderManager.getOrCreateEntityChunk(ChunkHolderManager.java:1047)
+[22:37:28] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.ChunkFullTask.run(ChunkFullTask.java:84)
+[22:37:28] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.concurrentutil.executor.queue.PrioritisedTaskQueue$PrioritisedQueuedTask.execute(PrioritisedTaskQueue.java:345)
+[22:37:28] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.concurrentutil.executor.queue.PrioritisedTaskQueue.executeTask(PrioritisedTaskQueue.java:126)
+[22:37:28] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.moonrise.patches.chunk_system.scheduling.ChunkTaskScheduler.executeAllRecentlyQueuedMainThreadTasks(ChunkTaskScheduler.java:349)
+[22:37:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer.runAllTasksAtTickStart(MinecraftServer.java:1209)
+[22:37:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer.processPacketsAndTick(MinecraftServer.java:1677)
+[22:37:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer.runServer(MinecraftServer.java:1348)
+[22:37:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer.lambda$spin$0(MinecraftServer.java:303)
+[22:37:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer$$Lambda/0x000000014619ea38.run(Unknown Source)
+[22:37:28] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.Thread.runWith(Thread.java:1487)
+[22:37:28] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.Thread.run(Thread.java:1474)
+[22:37:28] [Paper Watchdog Thread/ERROR]: ------------------------------
+[22:37:28] [Paper Watchdog Thread/ERROR]: --- DO NOT REPORT THIS TO PAPER - THIS IS NOT A BUG OR A CRASH ---
+[22:37:28] [Paper Watchdog Thread/ERROR]: ------------------------------
+[22:37:29] [spark-monitoring-1-thread-2/WARN]: [spark] Timed out waiting for world statistics
+[22:37:32] [Server thread/INFO]: bloomand (dff37232-057f-3d78-9c41-8a485ffe97f1) lost connection: Timed out
+[22:37:32] [Server thread/INFO]: blub1 (0da41975-a43a-3396-a499-231db18fb5ea) lost connection: Timed out
+[22:37:36] [User Authenticator #2/INFO]: UUID of player bloomand is dff37232-057f-3d78-9c41-8a485ffe97f1
+[22:37:38] [spark-monitoring-1-thread-2/WARN]: [spark] Timed out waiting for world statistics
+[22:37:52] [User Authenticator #3/INFO]: UUID of player blub1 is 0da41975-a43a-3396-a499-231db18fb5ea
+[22:37:55] [Server thread/INFO]: bloomand joined the game
+[22:37:56] [Server thread/INFO]: bloomand[/127.0.0.1:52541] logged in with entity id 99 at ([minecraft:overworld]-91.69999998807907, 82.0, 24.69999998807907)
+[22:37:58] [spark-monitoring-1-thread-2/WARN]: [spark] Timed out waiting for world statistics
+[22:38:06] [Server thread/INFO]: blub1 joined the game
+[22:38:06] [Server thread/INFO]: blub1[/127.0.0.1:52617] logged in with entity id 115 at ([minecraft:overworld]-102.5, 82.0, 32.5)
+[22:39:42] [Server thread/INFO]: bloomand issued server command: /bunker help
+[22:39:54] [Server thread/INFO]: bloomand issued server command: /bunker games
+[22:40:00] [Server thread/INFO]: bloomand issued server command: /bunker create
+[22:40:10] [Server thread/INFO]: blub1 issued server command: /bunker join 1
+[22:40:16] [Server thread/INFO]: blub1 issued server command: /bunker start
+[22:40:21] [Server thread/INFO]: bloomand issued server command: /bunker start
+[22:40:35] [Server thread/INFO]: blub1 issued server command: /bunker create
+[22:40:42] [Server thread/INFO]: blub1 issued server command: /bunker skip
+[22:41:02] [Server thread/INFO]: blub1 issued server command: /bunker pass
+[22:41:07] [Server thread/INFO]: bloomand issued server command: /bunker pass
+[22:41:14] [Server thread/INFO]: bloomand issued server command: /bunker status
+[22:43:45] [Paper Watchdog Thread/ERROR]: --- DO NOT REPORT THIS TO PAPER - THIS IS NOT A BUG OR A CRASH  - 26.2-129-9240f58 (MC: 26.2) ---
+[22:43:45] [Paper Watchdog Thread/ERROR]: The server has not responded for 10 seconds! Creating thread dump
+[22:43:45] [Paper Watchdog Thread/ERROR]: ------------------------------
+[22:43:45] [Paper Watchdog Thread/ERROR]: Server thread dump (Look for plugins here before reporting to Paper!):
+[22:43:45] [Paper Watchdog Thread/ERROR]: ------------------------------
+[22:43:45] [Paper Watchdog Thread/ERROR]: Current Thread: Server thread
+[22:43:45] [Paper Watchdog Thread/ERROR]: 	PID: 48 | Suspended: false | Native: false | State: RUNNABLE
+[22:43:45] [Paper Watchdog Thread/ERROR]: 	Stack:
+[22:43:45] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.concurrent.ConcurrentHashMap.putIfAbsent(ConcurrentHashMap.java:1555)
+[22:43:45] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.ClassLoader.getClassLoadingLock(ClassLoader.java:645)
+[22:43:45] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/jdk.internal.loader.BuiltinClassLoader.loadClassOrNull(BuiltinClassLoader.java:590)
+[22:43:45] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/jdk.internal.loader.BuiltinClassLoader.loadClass(BuiltinClassLoader.java:578)
+[22:43:45] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.ClassLoader.loadClass(ClassLoader.java:544)
+[22:43:45] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.ClassLoader.loadClass(ClassLoader.java:490)
+[22:43:45] [Paper Watchdog Thread/ERROR]: 		org.bukkit.craftbukkit.inventory.CraftContainer.<init>(CraftContainer.java:50)
+[22:43:45] [Paper Watchdog Thread/ERROR]: 		org.bukkit.craftbukkit.entity.CraftHumanEntity.openCustomInventory(CraftHumanEntity.java:373)
+[22:43:45] [Paper Watchdog Thread/ERROR]: 		org.bukkit.craftbukkit.entity.CraftHumanEntity.openInventory(CraftHumanEntity.java:360)
+[22:43:45] [Paper Watchdog Thread/ERROR]: 		Bunker-0.1.0.jar//ru.maincraft.bunker.BunkerPlugin$Game.openSelection(BunkerPlugin.java:553)
+[22:43:45] [Paper Watchdog Thread/ERROR]: 		Bunker-0.1.0.jar//ru.maincraft.bunker.BunkerPlugin$Game.nextSpeaker(BunkerPlugin.java:520)
+[22:43:45] [Paper Watchdog Thread/ERROR]: 		Bunker-0.1.0.jar//ru.maincraft.bunker.BunkerPlugin$Game.beginDiscussion(BunkerPlugin.java:503)
+[22:43:45] [Paper Watchdog Thread/ERROR]: 		Bunker-0.1.0.jar//ru.maincraft.bunker.BunkerPlugin$Game$$Lambda/0x0000000146cfc878.run(Unknown Source)
+[22:43:45] [Paper Watchdog Thread/ERROR]: 		org.bukkit.craftbukkit.scheduler.CraftTask.run(CraftTask.java:78)
+[22:43:45] [Paper Watchdog Thread/ERROR]: 		org.bukkit.craftbukkit.scheduler.CraftScheduler.mainThreadHeartbeat(CraftScheduler.java:474)
+[22:43:45] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer.tickChildren(MinecraftServer.java:1767)
+[22:43:45] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer.tickServer(MinecraftServer.java:1620)
+[22:43:45] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.dedicated.DedicatedServer.tickServer(DedicatedServer.java:404)
+[22:43:45] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer.processPacketsAndTick(MinecraftServer.java:1678)
+[22:43:45] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer.runServer(MinecraftServer.java:1348)
+[22:43:45] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer.lambda$spin$0(MinecraftServer.java:303)
+[22:43:45] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer$$Lambda/0x000000014619ea38.run(Unknown Source)
+[22:43:45] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.Thread.runWith(Thread.java:1487)
+[22:43:45] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.Thread.run(Thread.java:1474)
+[22:43:45] [Paper Watchdog Thread/ERROR]: ------------------------------
+[22:43:45] [Paper Watchdog Thread/ERROR]: --- DO NOT REPORT THIS TO PAPER - THIS IS NOT A BUG OR A CRASH ---
+[22:43:45] [Paper Watchdog Thread/ERROR]: ------------------------------
+[22:44:22] [Server thread/INFO]: bloomand issued server command: /bunker pass
+[22:44:32] [Async Chat Thread - #0/INFO]: [Not Secure] <blub1> rvfgv
+[22:44:43] [Server thread/INFO]: bloomand issued server command: /bunker pass
+[22:44:49] [Server thread/INFO]: blub1 issued server command: /bunker pass
+[22:45:05] [Server thread/INFO]: blub1 issued server command: /bunker players
+[22:45:33] [Server thread/INFO]: blub1 issued server command: /bunker vote skip
+[22:45:38] [Server thread/INFO]: blub1 issued server command: /bunker vote skip
+[22:45:50] [Server thread/INFO]: blub1 issued server command: /bunker pass
+[22:49:15] [Server thread/INFO]: bloomand lost connection: Disconnected
+[22:49:19] [Netty Kqueue IO #1/WARN]: Failed to deliver packet, sending fallback clientbound/minecraft:system_chat
+io.netty.channel.StacklessClosedChannelException
+	at io.netty.channel.AbstractChannel.close(ChannelPromise)(Unknown Source) ~[netty-transport-4.2.15.Final.jar:4.2.15.Final]
+[22:49:19] [Netty Kqueue IO #1/WARN]: Failed to deliver packet, sending fallback clientbound/minecraft:system_chat
+io.netty.channel.StacklessClosedChannelException
+	at io.netty.channel.AbstractChannel.close(ChannelPromise)(Unknown Source) ~[netty-transport-4.2.15.Final.jar:4.2.15.Final]
+[22:49:19] [Netty Kqueue IO #1/WARN]: Failed to deliver packet, sending fallback clientbound/minecraft:system_chat
+io.netty.channel.StacklessClosedChannelException
+	at io.netty.channel.AbstractChannel.close(ChannelPromise)(Unknown Source) ~[netty-transport-4.2.15.Final.jar:4.2.15.Final]
+[22:49:19] [Netty Kqueue IO #1/WARN]: Failed to deliver packet, sending fallback clientbound/minecraft:system_chat
+io.netty.channel.StacklessClosedChannelException
+	at io.netty.channel.AbstractChannel.close(ChannelPromise)(Unknown Source) ~[netty-transport-4.2.15.Final.jar:4.2.15.Final]
+[22:49:19] [Netty Kqueue IO #1/WARN]: Failed to deliver packet, sending fallback clientbound/minecraft:system_chat
+io.netty.channel.StacklessClosedChannelException
+	at io.netty.channel.AbstractChannel.close(ChannelPromise)(Unknown Source) ~[netty-transport-4.2.15.Final.jar:4.2.15.Final]
+[22:49:19] [Netty Kqueue IO #1/WARN]: Failed to deliver packet, sending fallback clientbound/minecraft:system_chat
+io.netty.channel.StacklessClosedChannelException
+	at io.netty.channel.AbstractChannel.close(ChannelPromise)(Unknown Source) ~[netty-transport-4.2.15.Final.jar:4.2.15.Final]
+[22:49:19] [Netty Kqueue IO #1/WARN]: Failed to deliver packet, sending fallback clientbound/minecraft:system_chat
+io.netty.channel.StacklessClosedChannelException
+	at io.netty.channel.AbstractChannel.close(ChannelPromise)(Unknown Source) ~[netty-transport-4.2.15.Final.jar:4.2.15.Final]
+[22:49:19] [Netty Kqueue IO #1/WARN]: Failed to deliver packet, sending fallback clientbound/minecraft:system_chat
+io.netty.channel.StacklessClosedChannelException
+	at io.netty.channel.AbstractChannel.close(ChannelPromise)(Unknown Source) ~[netty-transport-4.2.15.Final.jar:4.2.15.Final]
+[22:49:19] [Netty Kqueue IO #1/WARN]: Failed to deliver packet, sending fallback clientbound/minecraft:system_chat
+io.netty.channel.StacklessClosedChannelException
+	at io.netty.channel.AbstractChannel.close(ChannelPromise)(Unknown Source) ~[netty-transport-4.2.15.Final.jar:4.2.15.Final]
+[22:49:19] [Netty Kqueue IO #1/WARN]: Failed to deliver packet, sending fallback clientbound/minecraft:system_chat
+io.netty.channel.StacklessClosedChannelException
+	at io.netty.channel.AbstractChannel.close(ChannelPromise)(Unknown Source) ~[netty-transport-4.2.15.Final.jar:4.2.15.Final]
+[22:49:19] [Netty Kqueue IO #1/WARN]: Failed to deliver packet, sending fallback clientbound/minecraft:system_chat
+io.netty.channel.StacklessClosedChannelException
+	at io.netty.channel.AbstractChannel.close(ChannelPromise)(Unknown Source) ~[netty-transport-4.2.15.Final.jar:4.2.15.Final]
+[22:49:19] [Netty Kqueue IO #1/WARN]: Failed to deliver packet, sending fallback clientbound/minecraft:system_chat
+io.netty.channel.StacklessClosedChannelException
+	at io.netty.channel.AbstractChannel.close(ChannelPromise)(Unknown Source) ~[netty-transport-4.2.15.Final.jar:4.2.15.Final]
+[22:49:19] [Netty Kqueue IO #1/WARN]: Failed to deliver packet, sending fallback clientbound/minecraft:system_chat
+io.netty.channel.StacklessClosedChannelException
+	at io.netty.channel.AbstractChannel.close(ChannelPromise)(Unknown Source) ~[netty-transport-4.2.15.Final.jar:4.2.15.Final]
+[22:49:19] [Netty Kqueue IO #1/WARN]: Failed to deliver packet, sending fallback clientbound/minecraft:system_chat
+io.netty.channel.StacklessClosedChannelException
+	at io.netty.channel.AbstractChannel.close(ChannelPromise)(Unknown Source) ~[netty-transport-4.2.15.Final.jar:4.2.15.Final]
+[22:49:19] [Netty Kqueue IO #1/WARN]: Failed to deliver packet, sending fallback clientbound/minecraft:system_chat
+io.netty.channel.StacklessClosedChannelException
+	at io.netty.channel.AbstractChannel.close(ChannelPromise)(Unknown Source) ~[netty-transport-4.2.15.Final.jar:4.2.15.Final]
+[22:49:19] [Netty Kqueue IO #1/WARN]: Failed to deliver packet, sending fallback clientbound/minecraft:system_chat
+io.netty.channel.StacklessClosedChannelException
+	at io.netty.channel.AbstractChannel.close(ChannelPromise)(Unknown Source) ~[netty-transport-4.2.15.Final.jar:4.2.15.Final]
+[22:49:19] [Netty Kqueue IO #1/WARN]: Failed to deliver packet, sending fallback clientbound/minecraft:system_chat
+io.netty.channel.StacklessClosedChannelException
+	at io.netty.channel.AbstractChannel.close(ChannelPromise)(Unknown Source) ~[netty-transport-4.2.15.Final.jar:4.2.15.Final]
+[22:49:19] [Netty Kqueue IO #1/WARN]: Failed to deliver packet, sending fallback clientbound/minecraft:system_chat
+io.netty.channel.StacklessClosedChannelException
+	at io.netty.channel.AbstractChannel.close(ChannelPromise)(Unknown Source) ~[netty-transport-4.2.15.Final.jar:4.2.15.Final]
+[22:49:19] [Netty Kqueue IO #1/WARN]: Failed to deliver packet, sending fallback clientbound/minecraft:system_chat
+io.netty.channel.StacklessClosedChannelException
+	at io.netty.channel.AbstractChannel.close(ChannelPromise)(Unknown Source) ~[netty-transport-4.2.15.Final.jar:4.2.15.Final]
+[22:49:19] [Netty Kqueue IO #1/WARN]: Failed to deliver packet, sending fallback clientbound/minecraft:system_chat
+io.netty.channel.StacklessClosedChannelException
+	at io.netty.channel.AbstractChannel.close(ChannelPromise)(Unknown Source) ~[netty-transport-4.2.15.Final.jar:4.2.15.Final]
+[22:49:23] [Server thread/INFO]: bloomand left the game
+[22:49:23] [Server thread/INFO]: blub1 lost connection: Disconnected
+[22:49:24] [Paper Watchdog Thread/ERROR]: --- DO NOT REPORT THIS TO PAPER - THIS IS NOT A BUG OR A CRASH  - 26.2-129-9240f58 (MC: 26.2) ---
+[22:49:24] [Paper Watchdog Thread/ERROR]: The server has not responded for 10 seconds! Creating thread dump
+[22:49:25] [Paper Watchdog Thread/ERROR]: ------------------------------
+[22:49:25] [Paper Watchdog Thread/ERROR]: Server thread dump (Look for plugins here before reporting to Paper!):
+[22:49:27] [Server thread/INFO]: blub1 left the game
+[22:49:28] [Paper Watchdog Thread/ERROR]: ------------------------------
+[22:49:28] [Paper Watchdog Thread/ERROR]: Current Thread: Server thread
+[22:49:28] [Paper Watchdog Thread/ERROR]: 	PID: 48 | Suspended: false | Native: false | State: RUNNABLE
+[22:49:28] [Paper Watchdog Thread/ERROR]: 	Stack:
+[22:49:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.level.block.LiquidBlock$$Lambda/0x0000000145756390.apply(Unknown Source)
+[22:49:28] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.util.Optional.map(Optional.java:260)
+[22:49:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.level.block.LiquidBlock.getCollisionShape(LiquidBlock.java:89)
+[22:49:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.level.block.state.BlockBehaviour$BlockStateBase.getCollisionShape(BlockBehaviour.java:823)
+[22:49:28] [Paper Watchdog Thread/ERROR]: 		ca.spottedleaf.moonrise.patches.collisions.CollisionUtil.getCollisionsForBlocksOrWorldBorder(CollisionUtil.java:2011)
+[22:49:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.Entity.collide(Entity.java:1648)
+[22:49:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.Entity.move(Entity.java:1188)
+[22:49:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.animal.fish.AbstractFish.travelInWater(AbstractFish.java:107)
+[22:49:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.LivingEntity.travelInFluid(LivingEntity.java:3136)
+[22:49:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.LivingEntity.travel(LivingEntity.java:3059)
+[22:49:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.LivingEntity.aiStep(LivingEntity.java:3780)
+[22:49:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.Mob.aiStep(Mob.java:527)
+[22:49:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.animal.fish.AbstractFish.aiStep(AbstractFish.java:125)
+[22:49:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.LivingEntity.tick(LivingEntity.java:3437)
+[22:49:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.Mob.tick(Mob.java:405)
+[22:49:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.entity.animal.fish.AbstractSchoolingFish.tick(AbstractSchoolingFish.java:72)
+[22:49:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.level.ServerLevel.tickNonPassenger(ServerLevel.java:1405)
+[22:49:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.level.ServerLevel$$Lambda/0x0000000146b1edd0.accept(Unknown Source)
+[22:49:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.level.Level.guardEntityTick(Level.java:1522)
+[22:49:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.level.ServerLevel.lambda$tick$0(ServerLevel.java:904)
+[22:49:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.level.ServerLevel$$Lambda/0x00000001464a38c8.accept(Unknown Source)
+[22:49:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.world.level.entity.EntityTickList.forEach(EntityTickList.java:39)
+[22:49:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.level.ServerLevel.tick(ServerLevel.java:886)
+[22:49:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer.tickChildren(MinecraftServer.java:1823)
+[22:49:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer.tickServer(MinecraftServer.java:1620)
+[22:49:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.dedicated.DedicatedServer.tickServer(DedicatedServer.java:404)
+[22:49:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer.processPacketsAndTick(MinecraftServer.java:1678)
+[22:49:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer.runServer(MinecraftServer.java:1348)
+[22:49:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer.lambda$spin$0(MinecraftServer.java:303)
+[22:49:28] [Paper Watchdog Thread/ERROR]: 		net.minecraft.server.MinecraftServer$$Lambda/0x000000014619ea38.run(Unknown Source)
+[22:49:28] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.Thread.runWith(Thread.java:1487)
+[22:49:28] [Paper Watchdog Thread/ERROR]: 		java.base@25.0.4.1/java.lang.Thread.run(Thread.java:1474)
+[22:49:28] [Paper Watchdog Thread/ERROR]: ------------------------------
+[22:49:28] [Paper Watchdog Thread/ERROR]: --- DO NOT REPORT THIS TO PAPER - THIS IS NOT A BUG OR A CRASH ---
+[22:49:28] [Paper Watchdog Thread/ERROR]: ------------------------------
+[22:49:45] [Server thread/INFO]: Stopping the server
+[22:49:45] [Server thread/INFO]: Stopping server
+[22:49:47] [Server thread/INFO]: [Bunker] Disabling Bunker v0.1.0
+[22:49:48] [Server thread/INFO]: [Bunker] Bunker выключен.
+[22:49:49] [Server thread/INFO]: Saving players
+[22:49:49] [Server thread/INFO]: Saving worlds
+[22:49:49] [Server thread/INFO]: Saving chunks for level 'ServerLevel[world]'/minecraft:overworld
+[22:49:52] [Server thread/INFO]: [ChunkHolderManager] Waiting 60s for chunk system to halt for world 'minecraft:overworld'
+[22:49:52] [Server thread/INFO]: [ChunkHolderManager] Halted chunk system for world 'minecraft:overworld'
+[22:49:52] [Server thread/INFO]: [ChunkHolderManager] Saving all chunkholders for world 'minecraft:overworld'
+[22:49:53] [spark-java-sampler-2-thread-6/WARN]: [spark] Timed out waiting for world statistics
+[22:50:08] [Server thread/INFO]: [ChunkHolderManager] Saved 153 block chunks, 49 entity chunks, 0 poi chunks in world 'minecraft:overworld', progress: 37,32
+[22:50:20] [Server thread/INFO]: [ChunkHolderManager] Saved 229 block chunks, 74 entity chunks, 0 poi chunks in world 'minecraft:overworld', progress: 58,16
+[22:50:33] [Server thread/INFO]: [ChunkHolderManager] Saved 383 block chunks, 122 entity chunks, 0 poi chunks in world 'minecraft:overworld', progress: 98,45
+[22:50:34] [Server thread/INFO]: [ChunkHolderManager] Saved 395 block chunks, 122 entity chunks, 0 poi chunks in world 'minecraft:overworld' in 41,71s
+[22:50:34] [Server thread/INFO]: [ChunkHolderManager] Waiting 60s for chunk I/O to halt for world 'minecraft:overworld'
+[22:50:34] [Server thread/INFO]: [ChunkHolderManager] Halted I/O scheduler for world 'minecraft:overworld'
+[22:50:34] [Server thread/INFO]: Saving chunks for level 'ServerLevel[world]'/minecraft:the_nether
+[22:50:34] [Server thread/INFO]: [ChunkHolderManager] Waiting 60s for chunk system to halt for world 'minecraft:the_nether'
+[22:50:34] [Server thread/INFO]: [ChunkHolderManager] Halted chunk system for world 'minecraft:the_nether'
+[22:50:34] [Server thread/INFO]: [ChunkHolderManager] Saving all chunkholders for world 'minecraft:the_nether'
+[22:50:34] [Server thread/INFO]: [ChunkHolderManager] Saved 0 block chunks, 0 entity chunks, 0 poi chunks in world 'minecraft:the_nether' in 0,00s
+[22:50:34] [Server thread/INFO]: [ChunkHolderManager] Waiting 60s for chunk I/O to halt for world 'minecraft:the_nether'
+[22:50:34] [Server thread/INFO]: [ChunkHolderManager] Halted I/O scheduler for world 'minecraft:the_nether'
+[22:50:34] [Server thread/INFO]: Saving chunks for level 'ServerLevel[world]'/minecraft:the_end
+[22:50:35] [Server thread/INFO]: [ChunkHolderManager] Waiting 60s for chunk system to halt for world 'minecraft:the_end'
+[22:50:35] [Server thread/INFO]: [ChunkHolderManager] Halted chunk system for world 'minecraft:the_end'
+[22:50:35] [Server thread/INFO]: [ChunkHolderManager] Saving all chunkholders for world 'minecraft:the_end'
+[22:50:35] [Server thread/INFO]: [ChunkHolderManager] Saved 0 block chunks, 0 entity chunks, 0 poi chunks in world 'minecraft:the_end' in 0,00s
+[22:50:35] [Server thread/INFO]: [ChunkHolderManager] Waiting 60s for chunk I/O to halt for world 'minecraft:the_end'
+[22:50:35] [Server thread/INFO]: [ChunkHolderManager] Halted I/O scheduler for world 'minecraft:the_end'
+[22:50:35] [Server thread/INFO]: ThreadedAnvilChunkStorage (world): All chunks are saved
+[22:50:35] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[22:50:35] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[22:50:35] [Server thread/INFO]: ThreadedAnvilChunkStorage: All dimensions are saved
+[22:50:35] [Server thread/INFO]: Waiting for all RegionFile I/O tasks to complete...
+[22:50:35] [Server thread/INFO]: All RegionFile I/O tasks to complete
+[22:50:35] [Server thread/INFO]: [MoonriseCommon] Awaiting termination of worker pool for up to 60s...
+[22:50:35] [Server thread/INFO]: [MoonriseCommon] Awaiting termination of I/O pool for up to 60s...
