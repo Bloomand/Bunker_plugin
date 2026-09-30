@@ -1,0 +1,12 @@
+{
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.compile.nullAnalysis.mode": "disabled",
+    "files.encoding": "utf8",
+    "java.configuration.runtimes": [
+        {
+            "name": "JavaSE-17",
+            "path": "/Users/alinageldash/Library/Java/JavaVirtualMachines/corretto-17.0.20/Contents/Home",
+            "default": true
+        }
+    ]
+}

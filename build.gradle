@@ -1,0 +1,45 @@
+plugins {
+    id 'java'
+}
+
+group = 'ru.maincraft'
+version = '0.1.0'
+
+def targetJava = 17
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'papermc'
+        url = 'https://repo.papermc.io/repository/maven-public/'
+    }
+}
+
+dependencies {
+    // Paper API предоставляется сервером во время запуска, поэтому в JAR она не включается.
+    // 26.2.build.129-stable — это версия самого Paper-сервера, а не опубликованный
+    // Maven-артефакт Paper API. Для сборки используем стабильный API 1.20.4,
+    // совместимый с api-version плагина и текущим сервером.
+    compileOnly 'io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT'
+    compileOnly 'org.jetbrains:annotations:24.1.0'
+    // json-simple уже поставляется Paper-сервером и используется для чтения characteristics.json.
+    compileOnly 'com.googlecode.json-simple:json-simple:1.1.1'
+}
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(targetJava)
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+processResources {
+    filesMatching('plugin.yml') {
+        expand(version: project.version)
+    }
+}
+
+jar {
+    archiveBaseName = 'Bunker'
+}

@@ -1,0 +1,20 @@
+name: Bunker
+version: '${version}'
+main: ru.maincraft.bunker.BunkerPlugin
+api-version: '1.20'
+author: Maincraft
+description: Тестовый плагин для экспериментов
+
+commands:
+  bunker:
+    description: Управление игрой Bunker
+    usage: /bunker <create|join|leave|status|cards|players|open|start|cancel|vote|pass|games|help>
+    permission: bunker.use
+
+permissions:
+  bunker.use:
+    description: Разрешает использовать команды игрока Bunker
+    default: true
+  bunker.admin:
+    description: Разрешает запускать и сбрасывать игру Bunker
+    default: op
