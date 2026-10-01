@@ -1,9 +1,12 @@
-prefix: "&6[Bunker] &f"
+prefix: "&6Bnk &f"
+
+config:
+  invalid: "%prefix%&cКонфигурация игры некорректна. Проверьте config.yml."
 
 help:
   title: "&6--- Bunker ---"
-  create: "&e/bunker create&f — создать игру и стать ведущим"
-  join: "&e/bunker join <ID>&f — присоединиться к игре"
+  create: "&e/bunker create <ID арены>&f — создать игру и стать ведущим"
+  join: "&e/bunker join <ID арены>&f — присоединиться к игре"
   start: "&e/bunker start&f — начать свою игру"
   cancel: "&e/bunker cancel&f — отменить свою игру"
   status: "&e/bunker status&f — статус своей игры"
@@ -14,10 +17,18 @@ help:
   pass: "&e/bunker pass&f — закончить этап или свой ход"
   games: "&e/bunker games&f — список открытых игр"
   reload: "&e/bunker reload&f — перезагрузить конфигурацию"
+  setarena: "&e/bunker setarena <ID> start&f — сохранить точку арены"
+  deletearena: "&e/bunker deletearena <ID>&f — удалить арену"
+  stopall: "&e/bunker stopall&f — завершить все игры (администратор)"
 
 reload:
   no-permission: "%prefix%&cНедостаточно прав."
   success: "%prefix%&aКонфигурация и сообщения перезагружены."
+
+admin:
+  no-permission: "%prefix%&cНедостаточно прав. Нужна permission bunker.admin."
+  games-stopped: "&cАдминистратор завершил игру без определения победителей."
+  stopall-success: "%prefix%Завершено игр: %count%."
 
 command:
   players-only: "%prefix%Команды игры доступны игроку."
@@ -25,8 +36,37 @@ command:
   already-in-game: "%prefix%Этот игрок уже состоит в игре."
   game-not-started: "%prefix%Игра ещё не началась."
 
+arena:
+  command-blocked: "%prefix%Во время игры разрешены только команды: %commands%"
+  usage: "%prefix%Использование: /bunker setarena <ID арены> start"
+  no-permission: "%prefix%Недостаточно прав. Нужна permission bunker.admin."
+  saved: "%prefix%Точка %point% арены %arena% сохранена в config.yml."
+  delete-usage: "%prefix%Использование: /bunker deletearena <ID арены>"
+  invalid-id: "%prefix%ID арены может содержать только буквы, цифры, _ и - без пробелов."
+  deleted: "%prefix%Арена %id% удалена из config.yml."
+  delete-busy: "%prefix%Нельзя удалить арену %id%: на ней идёт игра."
+  not-found: "%prefix%Арена с ID %id% не найдена или не настроена."
+  busy: "%prefix%Арена «%name%» уже занята активной игрой."
+  no-active-game: "%prefix%На арене %id% сейчас нет активной игры."
+  no-joinable-games: "%prefix%Сейчас нет комнат, в которые можно присоединиться."
+  none: "%prefix%Арен пока нет."
+  list-title: "&6Доступные арены:"
+  list-item: "&e%id%&f — %name% &7(%status%)&f: %description%"
+  create-hint: "%prefix%Ведущий создаёт игру командой /bunker create <ID_арены>."
+  create-menu-title: "&3Выберите арену для новой игры"
+  join-menu-title: "&3Активные игры на аренах"
+  status-free: "Свободна для новой игры"
+  status-busy: "Занята: %players%/%max_players% игроков"
+  random-title: "&dСлучайная арена"
+  random-lore: "&fВыбрать одну из %count% свободных арен"
+  random-join-lore: "&fВыбрать случайную комнату из %count% доступных"
+  previous-page: "&eПредыдущая страница"
+  next-page: "&eСледующая страница"
+  host: "&eВедущий: &f%player%"
+  waiting: "&eОжидают: &f%players%"
+
 join:
-  usage: "%prefix%Укажите ID игры: /bunker join <ID>"
+  usage: "%prefix%Укажите ID арены: /bunker join <ID_арены>"
 
 status:
   not-in-game: "%prefix%Вы не состоите в игре. Открытых игр: %games%."
@@ -35,14 +75,14 @@ status:
 games:
   empty: "%prefix%Сейчас нет открытых игр."
   title: "&6Открытые игры:"
-  item: "&e%id%&f — %players%/%max_players%"
+  item: "&e%id%&f — %name% &7(%players%/%max_players%)"
 
 create:
   first: "%prefix%Сначала создайте игру: /bunker create"
 
 game:
-  created: "%prefix%&6Игра создана для %player%. ID: &e%id%"
-  connect: "%prefix%Подключение: /bunker join %id%"
+  created: "%prefix%&6Игра создана для %player% на арене &e%arena%&6."
+  connect: "%prefix%Арена: %arena%. Подключение игроков: /bunker join %arena%"
   lobby-help: "%prefix%Начать: /bunker start. Отменить: /bunker cancel."
   not-enough-players: "%prefix%Нужно минимум %min_players% игроков. Сейчас: %players%."
   max-players: "%prefix%В игре уже максимум игроков: %max_players%."
@@ -53,6 +93,7 @@ game:
   joined: "%prefix%%player% присоединился. Игроков: %players%/%max_players%."
   left: "%prefix%%player% покинул игру. Игроков: %players%."
   eliminated: "%prefix%%player% покинул игру и считается выбывшим."
+  host-transferred: "%prefix%Ведущий %old_host% выбыл. Новым ведущим становится игрок №%number% (%player%)."
 
 phase:
   lobby-timeout: "Игра автоматически отменена: за 10 минут не набралось готовое лобби."

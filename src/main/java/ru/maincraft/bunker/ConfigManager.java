@@ -1,7 +1,6 @@
 package ru.maincraft.bunker;
 
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.json.simple.JSONArray;
@@ -63,21 +62,20 @@ public final class ConfigManager {
     }
 
     public int integer(String path, int fallback) {
-        int value = plugin.getConfig().getInt(path, fallback);
-        return value > 0 ? value : fallback;
+        return plugin.getConfig().contains(path) ? plugin.getConfig().getInt(path) : fallback;
     }
 
     public String message(String key, Map<String, ?> placeholders) {
         String value = messages.getString(key, key);
         Map<String, Object> values = new HashMap<>();
-        values.put("prefix", messages.getString("prefix", "&6[Bunker] &f"));
+        values.put("prefix", messages.getString("prefix", "&6Bnk &f"));
         if (placeholders != null) {
             values.putAll(placeholders);
         }
         for (Map.Entry<String, Object> entry : values.entrySet()) {
             value = value.replace("%" + entry.getKey() + "%", String.valueOf(entry.getValue()));
         }
-        return ChatColor.translateAlternateColorCodes('&', value);
+        return org.bukkit.ChatColor.translateAlternateColorCodes('&', value);
     }
 
     private File prepareResource(String name) {

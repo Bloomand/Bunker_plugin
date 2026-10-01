@@ -9,3 +9,18 @@ game:
   voting-seconds: 60
   host-skip-delay-seconds: 30
   skip-count: 2
+
+arenas:
+  bunker:
+    name: "Главный бункер"
+    description: "Основная арена для игры"
+    icon: CHEST
+    start:
+      world: world
+      x: 0.5
+      y: 64.0
+      z: 0.5
+      yaw: 0.0
+      pitch: 0.0
+    allowed-commands:
+      - spawn
