@@ -188,6 +188,28 @@ Paper-плагин для многопользовательской игры «
 
 ## Данные игры
 
+## Настройка и сообщения
+
+Игровые параметры находятся в `config.yml` и применяются при запуске или после `/bunker reload`:
+
+```yaml
+game:
+  min-players: 6
+  max-players: 12
+  winners-count: 2
+  lobby-seconds: 600
+  study-seconds: 120
+  speech-seconds: 180
+  open-discussion-seconds: 120
+  voting-seconds: 60
+  host-skip-delay-seconds: 30
+  skip-count: 2
+```
+
+Все основные сообщения находятся в `messages.yml`. В нём можно менять цвета, формулировки и подсказки. Для подстановок используются переменные вида `%player%`, `%id%`, `%seconds%` и другие, указанные в исходном тексте сообщения.
+
+Команда `/bunker reload` доступна игрокам с permission `bunker.admin` и перечитывает `config.yml`, `messages.yml` и игровые JSON без перезапуска сервера. Уже запущенные таймеры не пересоздаются; новые значения применяются к следующим этапам и играм.
+
 Исходные JSON находятся в:
 
 ```text
@@ -297,6 +319,8 @@ Bunker/
 ├── src/main/java/ru/maincraft/bunker/ConfigManager.java
 ├── src/main/java/ru/maincraft/bunker/GameManager.java
 ├── src/main/resources/plugin.yml
+├── src/main/resources/config.yml
+├── src/main/resources/messages.yml
 ├── src/main/resources/characteristics.json
 └── src/main/resources/catastrophes.json
 ```

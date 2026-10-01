@@ -1,0 +1,126 @@
+prefix: "&6[Bunker] &f"
+
+help:
+  title: "&6--- Bunker ---"
+  create: "&e/bunker create&f — создать игру и стать ведущим"
+  join: "&e/bunker join <ID>&f — присоединиться к игре"
+  start: "&e/bunker start&f — начать свою игру"
+  cancel: "&e/bunker cancel&f — отменить свою игру"
+  status: "&e/bunker status&f — статус своей игры"
+  cards: "&e/bunker cards&f — посмотреть свои карты"
+  players: "&e/bunker players&f — раскрытые карты игроков"
+  open: "&e/bunker open&f — открыть меню выбора или голосования"
+  vote: "&e/bunker vote <номер или skip>&f — проголосовать или пропустить"
+  pass: "&e/bunker pass&f — закончить этап или свой ход"
+  games: "&e/bunker games&f — список открытых игр"
+  reload: "&e/bunker reload&f — перезагрузить конфигурацию"
+
+reload:
+  no-permission: "%prefix%&cНедостаточно прав."
+  success: "%prefix%&aКонфигурация и сообщения перезагружены."
+
+command:
+  players-only: "%prefix%Команды игры доступны игроку."
+  not-in-game: "%prefix%Этот игрок не состоит в игре."
+  already-in-game: "%prefix%Этот игрок уже состоит в игре."
+  game-not-started: "%prefix%Игра ещё не началась."
+
+join:
+  usage: "%prefix%Укажите ID игры: /bunker join <ID>"
+
+status:
+  not-in-game: "%prefix%Вы не состоите в игре. Открытых игр: %games%."
+  info: "%prefix%Игра %id%: %phase%. Всего игроков: %players%. Выживших: %alive%."
+
+games:
+  empty: "%prefix%Сейчас нет открытых игр."
+  title: "&6Открытые игры:"
+  item: "&e%id%&f — %players%/%max_players%"
+
+create:
+  first: "%prefix%Сначала создайте игру: /bunker create"
+
+game:
+  created: "%prefix%&6Игра создана для %player%. ID: &e%id%"
+  connect: "%prefix%Подключение: /bunker join %id%"
+  lobby-help: "%prefix%Начать: /bunker start. Отменить: /bunker cancel."
+  not-enough-players: "%prefix%Нужно минимум %min_players% игроков. Сейчас: %players%."
+  max-players: "%prefix%В игре уже максимум игроков: %max_players%."
+  not-found: "%prefix%Игра с таким ID не найдена."
+  already-started: "%prefix%Эта игра уже началась."
+  not-host: "%prefix%Только ведущий может выполнить эту команду."
+  cancelled: "%prefix%Игра отменена: %reason%"
+  joined: "%prefix%%player% присоединился. Игроков: %players%/%max_players%."
+  left: "%prefix%%player% покинул игру. Игроков: %players%."
+  eliminated: "%prefix%%player% покинул игру и считается выбывшим."
+
+phase:
+  lobby-timeout: "Игра автоматически отменена: за 10 минут не набралось готовое лобби."
+  started: "&6Игра %id% началась! Участников: %players%."
+  catastrophe: "&6Катастрофа: %catastrophe%"
+  study: "&eУ вас есть %seconds% секунд на изучение характеристик."
+  host-skip: "&7Ведущий сможет завершить этап через %seconds% секунд командой /bunker pass."
+  hint-cards: "&7Подсказка: /bunker cards — ваши карты, /bunker status — текущий этап."
+  round: "&bРаунд %round%. Начинается этап обсуждения."
+  speaker: "&eСейчас говорит игрок №%number% (%player%). Выберите характеристику или используйте /bunker open и /bunker pass."
+  turn-bar: "Ход игрока №%number% | /bunker pass"
+  all-revealed: "&bВсе характеристики этого раунда раскрыты."
+  open-discussion: "&e%seconds% секунд общего обсуждения перед голосованием."
+  voting: "&6Этап голосования начался."
+  vote-hint: "&7Подсказка: проголосовать можно через меню или /bunker vote <номер>."
+  vote-options: "&7Выберите номер игрока или skip. Доступно пропусков: %remaining%."
+  countdown: "&e%label%&f | Осталось: %time%"
+
+vote:
+  accepted: "%prefix%Ваш голос принят."
+  usage: "%prefix%Использование: /bunker vote <номер игрока или skip>"
+  invalid-number: "%prefix%Укажите номер игрока или слово skip для пропуска голосования."
+  runoff-no-skip: "%prefix%В повторном голосовании пропуск недоступен."
+  no-skips: "%prefix%Все пропуски уже использованы."
+  invalid-target: "%prefix%Нельзя проголосовать за этот номер."
+  skipped: "&bГолосование пропущено (%used%/%total%)."
+  skip-threshold: "&bПоловина или более участников выбрали пропуск или не проголосовали. Голосование пропущено (%used%/%total%)."
+  no-votes: "&6Ни один игрок не получил голосов. Никто не выбывает."
+  random-elimination: "&cНи один игрок не получил голоса: %reason%, поэтому случайно выбывает игрок №%number% (%player%)."
+  tie: "&bНичья. Запускается обязательное повторное голосование между игроками: %candidates%. Пропуск недоступен."
+  tie-again: "&bВ повторном голосовании снова ничья. Повторяем его."
+  eliminated: "&cИгрок №%number% (%player%) покидает бункер."
+
+selection:
+  title: "&3Выберите характеристику"
+  revealed: "&bИгрок №%number% раскрыл характеристику %category%: %name%"
+  reveal: "&f%name%"
+  click: "&7Нажмите, чтобы раскрыть"
+  exit: "&cВыйти из интерфейса"
+  exit-lore: "&7Ваш выбор не будет отменён"
+  no-cards: "&7У игрока №%number% больше нет нераскрытых характеристик. Ход передаётся дальше."
+  no-cards: "&7У игрока №%number% больше нет нераскрытых характеристик. Ход передаётся дальше."
+
+vote-menu:
+  title: "&3Голосование"
+  choose: "&fНажмите, чтобы проголосовать"
+  skip: "&bSKIP — пропустить голосование"
+  skips-left: "&fОсталось пропусков: %remaining%"
+  exit: "&cВыйти из интерфейса"
+  exit-lore: "&7Ваш голос не будет засчитан"
+  player: "&6№%number% — %player%"
+
+finish:
+  title: "&6Игра завершена! Победители:"
+  winner: "&b№%number% — %player%"
+  all-cards: "&6Полные характеристики всех участников:"
+  player: "&b№%number% — %player%:"
+  card: "&6%category%: &f%name%"
+
+cards:
+  title: "&bХарактеристики игрока %player%:"
+  card: "&6%category%: &f%name%"
+  description: "&7  %description%"
+
+players-menu:
+  title: "&3Игроки и раскрытые карты"
+  number: "&7Номер: %number%"
+  eliminated: "&cИгрок покинул бункер"
+  no-revealed: "&8Нет раскрытых характеристик"
+  revealed: "&bРаскрытые характеристики:"
+  card: "&6%category%: &f%name%"

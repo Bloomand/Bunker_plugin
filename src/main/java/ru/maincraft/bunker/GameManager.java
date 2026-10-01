@@ -29,16 +29,17 @@ import java.util.UUID;
 /** Управляет комнатами, этапами игры, таймерами, GUI и голосованием. */
 @SuppressWarnings("deprecation")
 public final class GameManager implements Listener {
-    private static final int MIN_PLAYERS = 6;
-    private static final int MAX_PLAYERS = 12;
-    private static final int WINNERS_COUNT = 2;
-    private static final int LOBBY_SECONDS = 10 * 60;
-    private static final int STUDY_SECONDS = 2 * 60;
-    private static final int SPEECH_SECONDS = 3 * 60;
-    private static final int OPEN_DISCUSSION_SECONDS = 2 * 60;
-    private static final int VOTING_SECONDS = 60;
-    private static final int HOST_SKIP_DELAY_SECONDS = 30;
-    private static final String PREFIX = ChatColor.GOLD + "[Bunker] " + ChatColor.WHITE;
+    private int minPlayers;
+    private int maxPlayers;
+    private int winnersCount;
+    private int lobbySeconds;
+    private int studySeconds;
+    private int speechSeconds;
+    private int openDiscussionSeconds;
+    private int votingSeconds;
+    private int hostSkipDelaySeconds;
+    private int skipCount;
+    private String prefix;
 
     private final BunkerPlugin plugin;
     private final ConfigManager configManager;
@@ -50,6 +51,26 @@ public final class GameManager implements Listener {
     public GameManager(BunkerPlugin plugin, ConfigManager configManager) {
         this.plugin = plugin;
         this.configManager = configManager;
+        reloadSettings();
+    }
+
+    public void reload() {
+        configManager.reloadFiles();
+        reloadSettings();
+    }
+
+    private void reloadSettings() {
+        minPlayers = configManager.integer("game.min-players", 6);
+        maxPlayers = configManager.integer("game.max-players", 12);
+        winnersCount = configManager.integer("game.winners-count", 2);
+        lobbySeconds = configManager.integer("game.lobby-seconds", 600);
+        studySeconds = configManager.integer("game.study-seconds", 120);
+        speechSeconds = configManager.integer("game.speech-seconds", 180);
+        openDiscussionSeconds = configManager.integer("game.open-discussion-seconds", 120);
+        votingSeconds = configManager.integer("game.voting-seconds", 60);
+        hostSkipDelaySeconds = configManager.integer("game.host-skip-delay-seconds", 30);
+        skipCount = configManager.integer("game.skip-count", 2);
+        prefix = configManager.message("prefix", null);
     }
 
     public void shutdown() {
@@ -61,6 +82,11 @@ public final class GameManager implements Listener {
     public boolean handleCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
             help(sender);
+            return true;
+        }
+
+        if (args[0].equalsIgnoreCase("reload")) {
+            reloadCommand(sender);
             return true;
         }
 
@@ -87,9 +113,22 @@ public final class GameManager implements Listener {
         return true;
     }
 
+    private void reloadCommand(CommandSender sender) {
+        if (!sender.hasPermission("bunker.admin")) {
+            sender.sendMessage(configManager.message("reload.no-permission", null));
+            return;
+        }
+        reload();
+        sender.sendMessage(configManager.message("reload.success", null));
+    }
+
+    private String text(String key, Map<String, ?> placeholders) {
+        return configManager.message(key, placeholders);
+    }
+
     private Actor resolveActor(CommandSender sender) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(PREFIX + "Команды игры доступны игроку.");
+            sender.sendMessage(configManager.message("command.players-only", null));
             return null;
         }
         return new Actor(player.getUniqueId(), player.getName());
@@ -97,7 +136,7 @@ public final class GameManager implements Listener {
 
     private void create(CommandSender sender, Actor actor) {
         if (playerGames.containsKey(actor.uuid())) {
-            sender.sendMessage(PREFIX + "Этот игрок уже состоит в игре.");
+            sender.sendMessage(configManager.message("command.already-in-game", null));
             return;
         }
 
@@ -107,46 +146,46 @@ public final class GameManager implements Listener {
         playerGames.put(actor.uuid(), game);
         game.lobbyTimeout = Bukkit.getScheduler().runTaskLater(plugin,
                 () -> game.cancel("Игра автоматически отменена: за 10 минут не набралось готовое лобби."),
-                LOBBY_SECONDS * 20L);
-        game.startCountdown("Ожидание игроков", LOBBY_SECONDS);
+                lobbySeconds * 20L);
+        game.startCountdown("Ожидание игроков", lobbySeconds);
 
-        sender.sendMessage(PREFIX + ChatColor.GOLD + "Игра создана для " + actor.name() + ". ID: " + ChatColor.YELLOW + id);
-        sender.sendMessage(PREFIX + "Подключение: /bunker join " + id);
-        sender.sendMessage(PREFIX + "Начать: /bunker start. Отменить: /bunker cancel.");
+        sender.sendMessage(text("game.created", Map.of("player", actor.name(), "id", id)));
+        sender.sendMessage(text("game.connect", Map.of("id", id)));
+        sender.sendMessage(text("game.lobby-help", null));
     }
 
     private void join(CommandSender sender, Actor actor, String[] args) {
         if (args.length < 2) {
-            sender.sendMessage(PREFIX + "Укажите ID игры: /bunker join <ID>");
+            sender.sendMessage(text("join.usage", null));
             return;
         }
         if (playerGames.containsKey(actor.uuid())) {
-            sender.sendMessage(PREFIX + "Этот игрок уже состоит в игре.");
+            sender.sendMessage(text("command.already-in-game", null));
             return;
         }
         Game game = games.get(args[1]);
         if (game == null) {
-            sender.sendMessage(PREFIX + "Игра с таким ID не найдена.");
+            sender.sendMessage(text("game.not-found", null));
             return;
         }
         if (game.started) {
-            sender.sendMessage(PREFIX + "Эта игра уже началась.");
+            sender.sendMessage(text("game.already-started", null));
             return;
         }
-        if (game.players.size() >= MAX_PLAYERS) {
-            sender.sendMessage(PREFIX + "В игре уже максимум игроков: " + MAX_PLAYERS + ".");
+        if (game.players.size() >= maxPlayers) {
+            sender.sendMessage(text("game.max-players", Map.of("max_players", maxPlayers)));
             return;
         }
 
         game.addPlayer(actor);
         playerGames.put(actor.uuid(), game);
-        game.broadcast(actor.name() + " присоединился. Игроков: " + game.players.size() + "/" + MAX_PLAYERS + ".");
+        game.broadcast(text("game.joined", Map.of("player", actor.name(), "players", game.players.size(), "max_players", maxPlayers)));
     }
 
     private void leave(CommandSender sender, Actor actor) {
         Game game = playerGames.get(actor.uuid());
         if (game == null) {
-            sender.sendMessage(PREFIX + "Этот игрок не состоит ни в одной игре.");
+            sender.sendMessage(text("command.not-in-game", null));
         } else if (game.started) {
             game.leaveDuringGame(actor.uuid());
             playerGames.remove(actor.uuid());
@@ -155,29 +194,29 @@ public final class GameManager implements Listener {
         } else {
             game.removePlayer(actor.uuid());
             playerGames.remove(actor.uuid());
-            game.broadcast(actor.name() + " покинул игру. Игроков: " + game.players.size() + ".");
+            game.broadcast(text("game.left", Map.of("player", actor.name(), "players", game.players.size())));
         }
     }
 
     private void start(CommandSender sender, Actor actor) {
         Game game = playerGames.get(actor.uuid());
         if (game == null) {
-            sender.sendMessage(PREFIX + "Сначала создайте игру: /bunker create");
+            sender.sendMessage(text("create.first", null));
         } else if (game.host.equals(actor.uuid())) {
             game.start();
         } else {
-            sender.sendMessage(PREFIX + "Только ведущий может начать игру.");
+            sender.sendMessage(text("game.not-host", null));
         }
     }
 
     private void cancel(CommandSender sender, Actor actor) {
         Game game = playerGames.get(actor.uuid());
         if (game == null) {
-            sender.sendMessage(PREFIX + "Этот игрок не состоит ни в одной игре.");
+            sender.sendMessage(text("command.not-in-game", null));
         } else if (game.host.equals(actor.uuid())) {
             game.cancel("Игра отменена ведущим.");
         } else {
-            sender.sendMessage(PREFIX + "Только ведущий может отменить игру.");
+            sender.sendMessage(text("game.not-host", null));
         }
     }
 
@@ -185,18 +224,17 @@ public final class GameManager implements Listener {
         if (playerGames.containsKey(actor.uuid())) {
             Game game = playerGames.get(actor.uuid());
             int alivePlayers = game.started ? game.alive.size() : game.players.size();
-            sender.sendMessage(PREFIX + "Игра " + game.id + ": " + game.phaseName()
-                    + ". Всего игроков: " + game.players.size()
-                    + ". Выживших: " + alivePlayers + ".");
+            sender.sendMessage(text("status.info", Map.of("id", game.id, "phase", game.phaseName(),
+                    "players", game.players.size(), "alive", alivePlayers)));
         } else {
-            sender.sendMessage(PREFIX + "Вы не состоите в игре. Открытых игр: " + games.size() + ".");
+            sender.sendMessage(text("status.not-in-game", Map.of("games", games.size())));
         }
     }
 
     private void cards(CommandSender sender, Actor actor) {
         Game game = playerGames.get(actor.uuid());
         if (game == null || !game.started) {
-            sender.sendMessage(PREFIX + "Игра ещё не началась.");
+            sender.sendMessage(text("command.game-not-started", null));
             return;
         }
         game.sendCards(actor.uuid(), sender);
@@ -204,12 +242,12 @@ public final class GameManager implements Listener {
 
     private void players(CommandSender sender, Actor actor) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(PREFIX + "Интерфейс игроков доступен только игроку.");
+            sender.sendMessage(text("command.players-only", null));
             return;
         }
         Game game = playerGames.get(actor.uuid());
         if (game == null || !game.started) {
-            player.sendMessage(PREFIX + "Интерфейс игроков доступен после начала игры.");
+            player.sendMessage(text("command.game-not-started", null));
             return;
         }
         game.openPlayers(player);
@@ -217,12 +255,12 @@ public final class GameManager implements Listener {
 
     private void open(CommandSender sender, Actor actor) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(PREFIX + "Интерфейс доступен только игроку.");
+            sender.sendMessage(text("command.players-only", null));
             return;
         }
         Game game = playerGames.get(actor.uuid());
         if (game == null) {
-            sender.sendMessage(PREFIX + "Этот игрок не состоит в игре.");
+            sender.sendMessage(text("command.not-in-game", null));
         } else {
             game.openCurrentInterface(player);
         }
@@ -230,26 +268,26 @@ public final class GameManager implements Listener {
 
     private void voteCommand(CommandSender sender, Actor actor, String[] args) {
         if (args.length < 2) {
-            sender.sendMessage(PREFIX + "Использование: /bunker vote <номер игрока или skip>");
+            sender.sendMessage(text("vote.usage", null));
             return;
         }
         try {
             Game game = playerGames.get(actor.uuid());
             if (game == null) {
-                sender.sendMessage(PREFIX + "Этот игрок не состоит в игре.");
+                sender.sendMessage(text("command.not-in-game", null));
             } else {
                 int target = args[1].equalsIgnoreCase("skip") ? 0 : Integer.parseInt(args[1]);
                 game.castVote(actor.uuid(), target);
             }
         } catch (NumberFormatException exception) {
-            sender.sendMessage(PREFIX + "Укажите номер игрока или слово skip для пропуска голосования.");
+            sender.sendMessage(text("vote.invalid-number", null));
         }
     }
 
     private void pass(CommandSender sender, Actor actor) {
         Game game = playerGames.get(actor.uuid());
         if (game == null) {
-            sender.sendMessage(PREFIX + "Этот игрок не состоит в игре.");
+            sender.sendMessage(text("command.not-in-game", null));
             return;
         }
         game.passTurn(actor.uuid());
@@ -257,28 +295,20 @@ public final class GameManager implements Listener {
 
     private void listGames(CommandSender sender) {
         if (games.isEmpty()) {
-            sender.sendMessage(PREFIX + "Сейчас нет открытых игр.");
+            sender.sendMessage(text("games.empty", null));
             return;
         }
-        sender.sendMessage(ChatColor.GOLD + "Открытые игры:");
+        sender.sendMessage(text("games.title", null));
         for (Game game : games.values()) {
-            sender.sendMessage(ChatColor.YELLOW + game.id + ChatColor.WHITE + " — " + game.players.size() + "/" + MAX_PLAYERS);
+            sender.sendMessage(text("games.item", Map.of("id", game.id, "players", game.players.size(), "max_players", maxPlayers)));
         }
     }
 
     private void help(CommandSender sender) {
-        sender.sendMessage(ChatColor.GOLD + "--- Bunker ---");
-        sender.sendMessage(ChatColor.YELLOW + "/bunker create" + ChatColor.WHITE + " — создать игру и стать ведущим");
-        sender.sendMessage(ChatColor.YELLOW + "/bunker join <ID>" + ChatColor.WHITE + " — присоединиться к игре");
-        sender.sendMessage(ChatColor.YELLOW + "/bunker start" + ChatColor.WHITE + " — начать свою игру");
-        sender.sendMessage(ChatColor.YELLOW + "/bunker cancel" + ChatColor.WHITE + " — отменить свою игру");
-        sender.sendMessage(ChatColor.YELLOW + "/bunker status" + ChatColor.WHITE + " — статус своей игры");
-        sender.sendMessage(ChatColor.YELLOW + "/bunker cards" + ChatColor.WHITE + " — посмотреть свои карты");
-        sender.sendMessage(ChatColor.YELLOW + "/bunker players" + ChatColor.WHITE + " — раскрытые карты игроков");
-        sender.sendMessage(ChatColor.YELLOW + "/bunker open" + ChatColor.WHITE + " — открыть доступный интерфейс выбора или голосования");
-        sender.sendMessage(ChatColor.YELLOW + "/bunker vote <номер или skip>" + ChatColor.WHITE + " — проголосовать или пропустить");
-        sender.sendMessage(ChatColor.YELLOW + "/bunker pass" + ChatColor.WHITE + " — закончить свой ход досрочно");
-        sender.sendMessage(ChatColor.YELLOW + "/bunker games" + ChatColor.WHITE + " — список открытых игр");
+        sender.sendMessage(text("help.title", null));
+        for (String key : List.of("create", "join", "start", "cancel", "status", "cards", "players", "open", "vote", "pass", "games", "reload")) {
+            sender.sendMessage(text("help." + key, null));
+        }
     }
 
     @EventHandler
@@ -396,15 +426,15 @@ public final class GameManager implements Listener {
         // Запускает игру после проверки состава и данных.
         private void start() {
             if (started) {
-                message(host, "Игра уже началась.");
+                message(host, text("game.already-started", null));
                 return;
             }
-            if (players.size() < MIN_PLAYERS) {
-                message(host, "Нужно минимум " + MIN_PLAYERS + " игроков. Сейчас: " + players.size() + ".");
+            if (players.size() < minPlayers) {
+                message(host, text("game.not-enough-players", Map.of("min_players", minPlayers, "players", players.size())));
                 return;
             }
             if (!configManager.isCharacteristicsLoaded()) {
-                message(host, "Игра не может начаться: файл characteristics.json повреждён или не загружен.");
+                message(host, "§cИгра не может начаться: файл characteristics.json повреждён или не загружен.");
                 return;
             }
             started = true;
@@ -416,16 +446,16 @@ public final class GameManager implements Listener {
             alive.clear();
             alive.addAll(players.keySet());
             dealCards();
-            broadcast(ChatColor.GOLD + "Игра " + id + " началась! Участников: " + players.size() + ".");
-            broadcast(ChatColor.GOLD + "Катастрофа: " + catastrophe);
-            broadcast(ChatColor.YELLOW + "У вас есть 2 минуты на изучение характеристик.");
-            broadcast(ChatColor.GRAY + "Ведущий сможет завершить этап через 30 секунд командой /bunker pass.");
-            broadcast(ChatColor.GRAY + "Подсказка: /bunker cards — ваши карты, /bunker status — текущий этап.");
+            broadcast(text("phase.started", Map.of("id", id, "players", players.size())));
+            broadcast(text("phase.catastrophe", Map.of("catastrophe", catastrophe)));
+            broadcast(text("phase.study", Map.of("seconds", studySeconds)));
+            broadcast(text("phase.host-skip", Map.of("seconds", hostSkipDelaySeconds)));
+            broadcast(text("phase.hint-cards", null));
             for (UUID uuid : alive) {
                 sendCards(uuid, null);
             }
-            startCountdown("Изучение характеристик", STUDY_SECONDS);
-            phaseTask = Bukkit.getScheduler().runTaskLater(plugin, this::beginDiscussion, STUDY_SECONDS * 20L);
+            startCountdown("Изучение характеристик", studySeconds);
+            phaseTask = Bukkit.getScheduler().runTaskLater(plugin, this::beginDiscussion, studySeconds * 20L);
         }
 
         private void dealCards() {
@@ -443,19 +473,19 @@ public final class GameManager implements Listener {
 
         // Один раунд: личные ходы, общее обсуждение и голосование.
         private void beginDiscussion() {
-            if (!started || alive.size() <= WINNERS_COUNT) {
+            if (!started || alive.size() <= winnersCount) {
                 finish();
                 return;
             }
             phase = Phase.DISCUSSION;
             round++;
             currentSpeakerIndex = 0;
-            broadcast(ChatColor.AQUA + "Раунд " + round + ". Начинается этап обсуждения.");
+            broadcast(text("phase.round", Map.of("round", round)));
             nextSpeaker();
         }
 
         private void nextSpeaker() {
-            if (alive.size() <= WINNERS_COUNT) {
+            if (alive.size() <= winnersCount) {
                 finish();
                 return;
             }
@@ -466,13 +496,13 @@ public final class GameManager implements Listener {
             currentSpeaker = alive.get(currentSpeakerIndex);
             currentTurnRevealed = false;
             Participant participant = players.get(currentSpeaker);
-            broadcast(ChatColor.YELLOW + "Сейчас говорит игрок №" + participant.number + " (" + participant.name + "). Выберите характеристику или используйте /bunker open и /bunker pass.");
+            broadcast(text("phase.speaker", Map.of("number", participant.number, "player", participant.name)));
             cancelTask(phaseTask);
             cancelTask(countdownTask);
             if (openSelection(Bukkit.getPlayer(currentSpeaker))) {
-                startCountdown("Ход игрока №" + participant.number + " | /bunker pass", SPEECH_SECONDS);
+                startCountdown("Ход игрока №" + participant.number + " | /bunker pass", speechSeconds);
                 phaseTask = Bukkit.getScheduler().runTaskLater(plugin,
-                        this::endTurn, SPEECH_SECONDS * 20L);
+                        this::endTurn, speechSeconds * 20L);
             } else {
                 phaseTask = Bukkit.getScheduler().runTaskLater(plugin,
                         this::endTurn, 1L);
@@ -490,20 +520,20 @@ public final class GameManager implements Listener {
                 }
             }
             if (available.isEmpty()) {
-                broadcast(ChatColor.GRAY + "У игрока №" + players.get(player.getUniqueId()).number
-                        + " больше нет нераскрытых характеристик. Ход передаётся дальше.");
+                broadcast(text("selection.no-cards", Map.of("number", players.get(player.getUniqueId()).number)));
                 return false;
             }
             Inventory inventory = Bukkit.createInventory(new SelectionHolder(id, available), 27,
-                    ChatColor.DARK_AQUA + "Выберите характеристику");
+                    text("selection.title", null));
             for (int index = 0; index < available.size(); index++) {
                 String category = available.get(index);
                 Characteristic card = cards.get(player.getUniqueId()).get(category);
                 inventory.setItem(index + 9, item(materialForCategory(category), ChatColor.GOLD + category,
-                        List.of(ChatColor.WHITE + card.name(), ChatColor.GRAY + "Нажмите, чтобы раскрыть")));
+                        List.of(text("selection.reveal", Map.of("name", card.name())),
+                                text("selection.click", null))));
             }
-            inventory.setItem(26, item(Material.BARRIER, ChatColor.RED + "Выйти из интерфейса",
-                    List.of(ChatColor.GRAY + "Ваш выбор не будет отменён")));
+            inventory.setItem(26, item(Material.BARRIER, text("selection.exit", null),
+                    List.of(text("selection.exit-lore", null))));
             player.openInventory(inventory);
             return true;
         }
@@ -522,8 +552,8 @@ public final class GameManager implements Listener {
             }
             Characteristic card = cards.get(uuid).get(category);
             Participant participant = players.get(uuid);
-            broadcast(ChatColor.AQUA + "Игрок №" + participant.number + " раскрыл характеристику "
-                    + category + ": " + card.name());
+            broadcast(text("selection.revealed", Map.of("number", participant.number,
+                    "category", category, "name", card.name())));
         }
 
         private void revealFirst(UUID uuid) {
@@ -553,7 +583,7 @@ public final class GameManager implements Listener {
                 return;
             }
             if (phase != Phase.DISCUSSION || !uuid.equals(currentSpeaker)) {
-                message(uuid, "Сейчас не ваш ход.");
+                message(uuid, "§cСейчас не ваш ход.");
                 return;
             }
             cancelTask(phaseTask);
@@ -562,17 +592,17 @@ public final class GameManager implements Listener {
 
         private void skipPhase(UUID uuid) {
             if (!uuid.equals(host)) {
-                message(uuid, "Только ведущий может досрочно завершать этот этап.");
+                message(uuid, "§cТолько ведущий может досрочно завершать этот этап.");
                 return;
             }
             if (phase != Phase.STUDY && phase != Phase.OPEN_DISCUSSION) {
-                message(uuid, "Команда /bunker pass доступна ведущему только во время изучения или общего обсуждения.");
+                message(uuid, "§cКоманда /bunker pass доступна ведущему только во время изучения или общего обсуждения.");
                 return;
             }
             long elapsedSeconds = (System.currentTimeMillis() - phaseStartedAtMillis) / 1000L;
-            if (elapsedSeconds < HOST_SKIP_DELAY_SECONDS) {
-                message(uuid, "Досрочно завершить этап можно через "
-                        + (HOST_SKIP_DELAY_SECONDS - elapsedSeconds) + " сек.");
+            if (elapsedSeconds < hostSkipDelaySeconds) {
+                message(uuid, "§cДосрочно завершить этап можно через "
+                        + (hostSkipDelaySeconds - elapsedSeconds) + " сек.");
                 return;
             }
             cancelTask(phaseTask);
@@ -603,12 +633,12 @@ public final class GameManager implements Listener {
             phase = Phase.OPEN_DISCUSSION;
             currentSpeaker = null;
             phaseStartedAtMillis = System.currentTimeMillis();
-            broadcast(ChatColor.AQUA + "Все характеристики этого раунда раскрыты.");
-            broadcast(ChatColor.YELLOW + "2 минуты общего обсуждения перед голосованием.");
-            broadcast(ChatColor.GRAY + "Ведущий сможет завершить этап через 30 секунд командой /bunker pass.");
-            startCountdown("Общее обсуждение перед голосованием", OPEN_DISCUSSION_SECONDS);
+            broadcast(text("phase.all-revealed", null));
+            broadcast(text("phase.open-discussion", Map.of("seconds", openDiscussionSeconds)));
+            broadcast(text("phase.host-skip", Map.of("seconds", hostSkipDelaySeconds)));
+            startCountdown("Общее обсуждение перед голосованием", openDiscussionSeconds);
             cancelTask(phaseTask);
-            phaseTask = Bukkit.getScheduler().runTaskLater(plugin, this::beginVoting, OPEN_DISCUSSION_SECONDS * 20L);
+            phaseTask = Bukkit.getScheduler().runTaskLater(plugin, this::beginVoting, openDiscussionSeconds * 20L);
         }
 
         private void beginVoting() {
@@ -616,15 +646,15 @@ public final class GameManager implements Listener {
             runoffVoting = false;
             runoffCandidates.clear();
             votes.clear();
-            broadcast(ChatColor.GOLD + "Этап голосования начался.");
-            broadcast(ChatColor.GRAY + "Выберите номер игрока или skip для пропуска. Доступно пропусков: " + (2 - skipUses) + ".");
-            broadcast(ChatColor.GRAY + "Подсказка: проголосовать можно через меню или /bunker vote <номер>.");
+            broadcast(text("phase.voting", null));
+            broadcast(text("phase.vote-options", Map.of("remaining", skipCount - skipUses)));
+            broadcast(text("phase.vote-hint", null));
             for (UUID uuid : new ArrayList<>(alive)) {
                 openVoting(uuid);
             }
             cancelTask(phaseTask);
-            startCountdown("Голосование", VOTING_SECONDS);
-            phaseTask = Bukkit.getScheduler().runTaskLater(plugin, this::resolveVoting, VOTING_SECONDS * 20L);
+            startCountdown("Голосование", votingSeconds);
+            phaseTask = Bukkit.getScheduler().runTaskLater(plugin, this::resolveVoting, votingSeconds * 20L);
         }
 
         private void openVoting(UUID voterUuid) {
@@ -632,7 +662,7 @@ public final class GameManager implements Listener {
             if (player == null) {
                 return;
             }
-            Inventory inventory = Bukkit.createInventory(new VoteHolder(id), 27, ChatColor.DARK_AQUA + "Голосование");
+            Inventory inventory = Bukkit.createInventory(new VoteHolder(id), 27, text("vote-menu.title", null));
             VoteHolder holder = (VoteHolder) inventory.getHolder();
             int slot = 0;
             for (UUID uuid : alive) {
@@ -640,17 +670,17 @@ public final class GameManager implements Listener {
                 if (!runoffVoting || runoffCandidates.contains(participant.number)) {
                     holder.choices.put(slot, participant.number);
                     inventory.setItem(slot++, item(Material.PLAYER_HEAD,
-                            ChatColor.GOLD + "№" + participant.number + " — " + participant.name,
-                            List.of(ChatColor.WHITE + "Нажмите, чтобы проголосовать")));
+                            text("vote-menu.player", Map.of("number", participant.number, "player", participant.name)),
+                            List.of(text("vote-menu.choose", null))));
                 }
             }
-            if (!runoffVoting && skipUses < 2) {
+            if (!runoffVoting && skipUses < skipCount) {
                 holder.choices.put(18, 0);
-                inventory.setItem(18, item(Material.BARRIER, ChatColor.AQUA + "SKIP — пропустить голосование",
-                        List.of(ChatColor.WHITE + "Осталось пропусков: " + (2 - skipUses))));
+                inventory.setItem(18, item(Material.BARRIER, text("vote-menu.skip", null),
+                        List.of(text("vote-menu.skips-left", Map.of("remaining", skipCount - skipUses)))));
             }
-            inventory.setItem(26, item(Material.BARRIER, ChatColor.RED + "Выйти из интерфейса",
-                    List.of(ChatColor.GRAY + "Ваш голос не будет засчитан")));
+            inventory.setItem(26, item(Material.BARRIER, text("vote-menu.exit", null),
+                    List.of(text("vote-menu.exit-lore", null))));
             player.openInventory(inventory);
         }
 
@@ -662,21 +692,21 @@ public final class GameManager implements Listener {
                 message(voter, "В повторном голосовании пропуск недоступен.");
                 return;
             }
-            if (targetNumber == 0 && skipUses >= 2) {
-                message(voter, "Все 2 пропуска уже использованы.");
+            if (targetNumber == 0 && skipUses >= skipCount) {
+                message(voter, text("vote.no-skips", null));
                 return;
             }
             UUID target = findPlayerByNumber(targetNumber);
             if (targetNumber != 0 && (target == null || !alive.contains(target)
                     || (runoffVoting && !runoffCandidates.contains(targetNumber)))) {
-                message(voter, "Нельзя проголосовать за этот номер.");
+                message(voter, text("vote.invalid-target", null));
                 return;
             }
             votes.put(voter, targetNumber);
             Player player = Bukkit.getPlayer(voter);
             if (player != null) {
                 player.closeInventory();
-                player.sendMessage(PREFIX + "Ваш голос принят.");
+                player.sendMessage(text("vote.accepted", null));
             }
             if (votes.size() >= alive.size()) {
                 resolveVoting();
@@ -701,9 +731,9 @@ public final class GameManager implements Listener {
             boolean enoughPlayerVotes = actualVotes >= halfOrMore;
             boolean skipSupport = skipVotes + nonVotes >= halfOrMore;
 
-            if (!runoffVoting && skipSupport && !enoughPlayerVotes && skipUses < 2) {
+            if (!runoffVoting && skipSupport && !enoughPlayerVotes && skipUses < skipCount) {
                 skipUses++;
-                broadcast(ChatColor.AQUA + "Половина или более участников выбрали 0 или не проголосовали. Голосование пропущено (" + skipUses + "/2).");
+                broadcast(text("vote.skip-threshold", Map.of("used", skipUses, "total", skipCount)));
                 nextRound();
                 return;
             }
@@ -715,17 +745,17 @@ public final class GameManager implements Listener {
                 }
             }
             if (winners.isEmpty()) {
-                if (skipUses >= 2 || runoffVoting) {
+                if (skipUses >= skipCount || runoffVoting) {
                     UUID eliminated = alive.get(random.nextInt(alive.size()));
                     Participant participant = players.get(eliminated);
                     alive.remove(eliminated);
-                    String reason = skipUses >= 2
+                    String reason = skipUses >= skipCount
                             ? "Пропуски уже использованы"
                             : "в повторном голосовании никто не проголосовал";
                     broadcast(ChatColor.RED + "Ни один игрок не получил голоса: " + reason
                             + ", поэтому случайно выбывает игрок №"
                             + participant.number + " (" + participant.name + ").");
-                    if (alive.size() <= WINNERS_COUNT) {
+                    if (alive.size() <= winnersCount) {
                         finish();
                     } else {
                         nextRound();
@@ -750,7 +780,7 @@ public final class GameManager implements Listener {
             alive.remove(eliminated);
             Participant participant = players.get(eliminated);
             broadcast(ChatColor.RED + "Игрок №" + participant.number + " (" + participant.name + ") покидает бункер.");
-            if (alive.size() <= WINNERS_COUNT) {
+            if (alive.size() <= winnersCount) {
                 finish();
             } else {
                 nextRound();
@@ -768,8 +798,8 @@ public final class GameManager implements Listener {
                 openVoting(uuid);
             }
             cancelTask(phaseTask);
-            startCountdown("Повторное голосование", VOTING_SECONDS);
-            phaseTask = Bukkit.getScheduler().runTaskLater(plugin, this::resolveVoting, VOTING_SECONDS * 20L);
+            startCountdown("Повторное голосование", votingSeconds);
+            phaseTask = Bukkit.getScheduler().runTaskLater(plugin, this::resolveVoting, votingSeconds * 20L);
         }
 
         private void startCountdown(String label, int seconds) {
@@ -787,7 +817,7 @@ public final class GameManager implements Listener {
         }
 
         private void sendActionBar(String label, int seconds) {
-            String message = ChatColor.YELLOW + label + ChatColor.WHITE + " | Осталось: " + formatTime(seconds);
+            String message = configManager.message("phase.countdown", Map.of("label", label, "time", formatTime(seconds)));
             for (UUID uuid : players.keySet()) {
                 if (started && !alive.contains(uuid)) {
                     continue;
@@ -858,7 +888,7 @@ public final class GameManager implements Listener {
             Participant participant = players.get(uuid);
             broadcast(ChatColor.RED + participant.name + " покинул игру и считается выбывшим.");
 
-            if (alive.size() <= WINNERS_COUNT) {
+            if (alive.size() <= winnersCount) {
                 finish();
                 return;
             }
@@ -955,7 +985,7 @@ public final class GameManager implements Listener {
             for (UUID uuid : players.keySet()) {
                 Player player = Bukkit.getPlayer(uuid);
                 if (player != null) {
-                    player.sendMessage(PREFIX + message);
+                    player.sendMessage(prefix + message);
                 }
             }
         }
@@ -963,7 +993,7 @@ public final class GameManager implements Listener {
         private void message(UUID uuid, String message) {
             Player player = Bukkit.getPlayer(uuid);
             if (player != null) {
-                player.sendMessage(PREFIX + message);
+                player.sendMessage(prefix + message);
             }
         }
 

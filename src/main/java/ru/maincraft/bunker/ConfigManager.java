@@ -1,6 +1,9 @@
 package ru.maincraft.bunker;
 
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.ChatColor;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -16,6 +19,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 
 /** Загружает игровые JSON-данные из папки плагина. */
 public final class ConfigManager {
@@ -23,12 +27,23 @@ public final class ConfigManager {
     private final Map<String, List<GameManager.Characteristic>> characteristicSets = new LinkedHashMap<>();
     private final List<String> catastrophes = new ArrayList<>();
     private boolean characteristicsLoaded;
+    private FileConfiguration messages;
 
     public ConfigManager(JavaPlugin plugin) {
         this.plugin = plugin;
     }
 
     public void load() {
+        reloadFiles();
+    }
+
+    public void reloadFiles() {
+        plugin.saveDefaultConfig();
+        if (!new File(plugin.getDataFolder(), "messages.yml").exists()) {
+            plugin.saveResource("messages.yml", false);
+        }
+        plugin.reloadConfig();
+        messages = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "messages.yml"));
         File characteristicsFile = prepareResource("characteristics.json");
         File catastrophesFile = prepareResource("catastrophes.json");
         loadCharacteristics(characteristicsFile);
@@ -45,6 +60,24 @@ public final class ConfigManager {
 
     public boolean isCharacteristicsLoaded() {
         return characteristicsLoaded;
+    }
+
+    public int integer(String path, int fallback) {
+        int value = plugin.getConfig().getInt(path, fallback);
+        return value > 0 ? value : fallback;
+    }
+
+    public String message(String key, Map<String, ?> placeholders) {
+        String value = messages.getString(key, key);
+        Map<String, Object> values = new HashMap<>();
+        values.put("prefix", messages.getString("prefix", "&6[Bunker] &f"));
+        if (placeholders != null) {
+            values.putAll(placeholders);
+        }
+        for (Map.Entry<String, Object> entry : values.entrySet()) {
+            value = value.replace("%" + entry.getKey() + "%", String.valueOf(entry.getValue()));
+        }
+        return ChatColor.translateAlternateColorCodes('&', value);
     }
 
     private File prepareResource(String name) {

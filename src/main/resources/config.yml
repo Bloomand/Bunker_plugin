@@ -1,0 +1,11 @@
+game:
+  min-players: 6
+  max-players: 12
+  winners-count: 2
+  lobby-seconds: 600
+  study-seconds: 120
+  speech-seconds: 180
+  open-discussion-seconds: 120
+  voting-seconds: 60
+  host-skip-delay-seconds: 30
+  skip-count: 2
