@@ -95,8 +95,8 @@ public final class GameManager implements Listener {
 
     private boolean validateSettings() {
         boolean valid = true;
-        if (minPlayers < 6 || maxPlayers < minPlayers) {
-            plugin.getLogger().severe("Некорректные настройки игроков: min-players должен быть не меньше 6 и не больше max-players.");
+        if (minPlayers < 6 || maxPlayers < minPlayers || maxPlayers > 18) {
+            plugin.getLogger().severe("Некорректные настройки игроков: min-players должен быть не меньше 6, max-players не больше 18 и min-players не больше max-players.");
             valid = false;
         }
         if (winnersCount < 1 || winnersCount >= minPlayers) {
@@ -107,6 +107,10 @@ public final class GameManager implements Listener {
                 || openDiscussionSeconds < 1 || votingSeconds < 1
                 || hostSkipDelaySeconds < 0 || skipCount < 0) {
             plugin.getLogger().severe("Некорректные настройки длительности этапов или количества пропусков.");
+            valid = false;
+        }
+        if (configManager.characteristicSets().size() > 17) {
+            plugin.getLogger().severe("Слишком много категорий характеристик: интерфейс поддерживает максимум 17.");
             valid = false;
         }
         return valid;
@@ -121,13 +125,15 @@ public final class GameManager implements Listener {
                 if (arena == null) {
                     continue;
                 }
-                String normalizedId = id.toLowerCase();
+                String normalizedId = normalizeArenaId(id);
                 Arena loaded = readArena(normalizedId, arena);
                 if (loaded.start == null) {
                     plugin.getLogger().warning("Арена " + id + " пропущена: не задана корректная точка start.");
                     continue;
                 }
-                arenas.put(normalizedId, loaded);
+                if (arenas.putIfAbsent(normalizedId, loaded) != null) {
+                    plugin.getLogger().warning("Арены " + id + " и другой арены имеют одинаковый ID без учёта регистра.");
+                }
             }
         }
         // Совместимость со старым форматом одной арены.
@@ -228,7 +234,7 @@ public final class GameManager implements Listener {
             try {
                 int numericId = Integer.parseInt(id);
                 UUID host = UUID.fromString(section.getString("host"));
-                String arenaId = section.getString("arena", "bunker").toLowerCase();
+                String arenaId = normalizeArenaId(section.getString("arena", "bunker"));
                 Arena arena = arenas.get(arenaId);
                 if (arena == null) {
                     plugin.getLogger().warning("Игра " + id + " пропущена: арена " + arenaId + " не найдена.");
@@ -325,9 +331,10 @@ public final class GameManager implements Listener {
                 continue;
             }
             Map<String, Characteristic> cards = new LinkedHashMap<>();
-            for (String category : playerCards.getKeys(false)) {
-                ConfigurationSection card = playerCards.getConfigurationSection(category);
+            for (String storedCategory : playerCards.getKeys(false)) {
+                ConfigurationSection card = playerCards.getConfigurationSection(storedCategory);
                 if (card != null) {
+                    String category = restoreCategoryKey(storedCategory);
                     cards.put(category, new Characteristic(card.getString("name", "Неизвестно"),
                             card.getString("description", "Описание отсутствует")));
                 }
@@ -359,7 +366,8 @@ public final class GameManager implements Listener {
             }
             for (Map.Entry<UUID, Map<String, Characteristic>> playerCards : game.cards.entrySet()) {
                 for (Map.Entry<String, Characteristic> card : playerCards.getValue().entrySet()) {
-                    String cardPath = path + ".cards." + playerCards.getKey() + "." + card.getKey();
+                    String cardPath = path + ".cards." + playerCards.getKey() + "."
+                            + storageCategoryKey(card.getKey());
                     data.set(cardPath + ".name", card.getValue().name());
                     data.set(cardPath + ".description", card.getValue().description());
                 }
@@ -396,6 +404,14 @@ public final class GameManager implements Listener {
         } catch (IOException exception) {
             plugin.getLogger().warning("Не удалось сохранить резервную копию games.yml: " + exception.getMessage());
         }
+    }
+
+    private String storageCategoryKey(String category) {
+        return category.replace(".", "\uFF0E");
+    }
+
+    private String restoreCategoryKey(String category) {
+        return category.replace("\uFF0E", ".");
     }
 
     public boolean handleCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -480,19 +496,21 @@ public final class GameManager implements Listener {
             return;
         }
 
-        String arenaId = args[1].toLowerCase();
+        String arenaId = normalizeArenaId(args[1]);
         if (!arenaId.matches("[\\p{L}\\p{N}_-]+")) {
             player.sendMessage(text("arena.invalid-id", null));
             return;
         }
-        if (!arenas.containsKey(arenaId)) {
-            plugin.getConfig().set("arenas." + arenaId + ".name", arenaId);
-            plugin.getConfig().set("arenas." + arenaId + ".description", "");
-            plugin.getConfig().set("arenas." + arenaId + ".icon", "CHEST");
-            plugin.getConfig().set("arenas." + arenaId + ".allowed-commands", List.of("spawn"));
+        String configArenaId = findArenaConfigKey(arenaId);
+        if (configArenaId == null) {
+            configArenaId = arenaId;
+            plugin.getConfig().set("arenas." + configArenaId + ".name", arenaId);
+            plugin.getConfig().set("arenas." + configArenaId + ".description", "");
+            plugin.getConfig().set("arenas." + configArenaId + ".icon", "CHEST");
+            plugin.getConfig().set("arenas." + configArenaId + ".allowed-commands", List.of("spawn"));
         }
         String point = args[2].toLowerCase();
-        String path = "arenas." + arenaId + "." + point;
+        String path = "arenas." + configArenaId + "." + point;
         Location location = player.getLocation();
         plugin.getConfig().set(path + ".world", location.getWorld().getName());
         plugin.getConfig().set(path + ".x", location.getX());
@@ -514,13 +532,13 @@ public final class GameManager implements Listener {
             sender.sendMessage(text("arena.delete-usage", null));
             return;
         }
-        String arenaId = args[1].toLowerCase();
+        String arenaId = normalizeArenaId(args[1]);
         if (!arenaId.matches("[\\p{L}\\p{N}_-]+")) {
             sender.sendMessage(text("arena.invalid-id", null));
             return;
         }
-        if (!arenas.containsKey(arenaId)
-                && !plugin.getConfig().isConfigurationSection("arenas." + arenaId)) {
+        String configArenaId = findArenaConfigKey(arenaId);
+        if (configArenaId == null) {
             sender.sendMessage(text("arena.not-found", Map.of("id", arenaId)));
             return;
         }
@@ -528,7 +546,7 @@ public final class GameManager implements Listener {
             sender.sendMessage(text("arena.delete-busy", Map.of("id", arenaId)));
             return;
         }
-        plugin.getConfig().set("arenas." + arenaId, null);
+        plugin.getConfig().set("arenas." + configArenaId, null);
         plugin.saveConfig();
         reloadSettings();
         sender.sendMessage(text("arena.deleted", Map.of("id", arenaId)));
@@ -572,7 +590,7 @@ public final class GameManager implements Listener {
             }
             return;
         }
-        String arenaId = args[1].toLowerCase();
+        String arenaId = normalizeArenaId(args[1]);
         Arena arena = arenas.get(arenaId);
         if (arena == null || arena.start == null) {
             sender.sendMessage(text("arena.not-found", Map.of("id", arenaId)));
@@ -608,7 +626,7 @@ public final class GameManager implements Listener {
             return;
         }
         boolean randomJoin = args[1].equalsIgnoreCase("random");
-        Game game = randomJoin ? randomLobby() : findGameForArena(args[1].toLowerCase());
+        Game game = randomJoin ? randomLobby() : findGameForArena(normalizeArenaId(args[1]));
         if (game == null) {
             sender.sendMessage(text(randomJoin ? "arena.no-joinable-games" : "arena.no-active-game",
                     Map.of("id", args[1])));
@@ -782,6 +800,23 @@ public final class GameManager implements Listener {
         for (Game game : games.values()) {
             if (game.arenaId.equalsIgnoreCase(arenaId)) {
                 return game;
+            }
+        }
+        return null;
+    }
+
+    private String normalizeArenaId(String id) {
+        return id.toLowerCase(java.util.Locale.ROOT);
+    }
+
+    private String findArenaConfigKey(String normalizedId) {
+        ConfigurationSection section = plugin.getConfig().getConfigurationSection("arenas");
+        if (section == null) {
+            return null;
+        }
+        for (String key : section.getKeys(false)) {
+            if (normalizeArenaId(key).equals(normalizedId)) {
+                return key;
             }
         }
         return null;
@@ -1106,6 +1141,7 @@ public final class GameManager implements Listener {
                 }
                 case OPEN_DISCUSSION -> beginOpenDiscussion();
                 case VOTING -> beginVoting();
+                case RESOLVING -> beginDiscussion();
                 case LOBBY, FINISHED -> finish();
             }
         }
@@ -1136,22 +1172,18 @@ public final class GameManager implements Listener {
         }
 
         private void teleportPlayersToArenaAtStart() {
-            if (arena.start == null) {
-                return;
-            }
-            for (UUID uuid : players.keySet()) {
-                Player player = Bukkit.getPlayer(uuid);
-                if (player != null) {
-                    player.teleport(spawnLocation());
-                }
-            }
+            teleportPlayers(players.keySet());
         }
 
         private void teleportPlayersToArena() {
+            teleportPlayers(alive);
+        }
+
+        private void teleportPlayers(java.util.Collection<UUID> uuids) {
             if (arena.start == null) {
                 return;
             }
-            for (UUID uuid : alive) {
+            for (UUID uuid : uuids) {
                 Player player = Bukkit.getPlayer(uuid);
                 if (player != null) {
                     player.teleport(spawnLocation());
@@ -1193,9 +1225,9 @@ public final class GameManager implements Listener {
             cancelTask(lobbyTimeout);
             alive.clear();
             alive.addAll(players.keySet());
-            saveState();
             teleportPlayersToArenaAtStart();
             dealCards();
+            saveState();
             broadcast(text("phase.started", Map.of("id", id, "players", players.size())));
             broadcast(text("phase.catastrophe", Map.of("catastrophe", catastrophe)));
             broadcast(text("phase.study", Map.of("seconds", studySeconds)));
@@ -1230,6 +1262,7 @@ public final class GameManager implements Listener {
             phase = Phase.DISCUSSION;
             round++;
             currentSpeakerIndex = 0;
+            saveState();
             broadcast(text("phase.round", Map.of("round", round)));
             nextSpeaker();
         }
@@ -1264,8 +1297,13 @@ public final class GameManager implements Listener {
                 return true;
             }
             List<String> available = new ArrayList<>();
-            for (String category : cards.get(player.getUniqueId()).keySet()) {
-                if (!revealed.get(player.getUniqueId()).contains(category)) {
+            Map<String, Characteristic> playerCards = cards.get(player.getUniqueId());
+            if (playerCards == null) {
+                broadcast(text("selection.no-cards", Map.of("number", players.get(player.getUniqueId()).number)));
+                return false;
+            }
+            for (String category : playerCards.keySet()) {
+                if (!revealed.getOrDefault(player.getUniqueId(), new LinkedHashSet<>()).contains(category)) {
                     available.add(category);
                 }
             }
@@ -1277,7 +1315,7 @@ public final class GameManager implements Listener {
                     text("selection.title", null));
             for (int index = 0; index < available.size(); index++) {
                 String category = available.get(index);
-                Characteristic card = cards.get(player.getUniqueId()).get(category);
+                Characteristic card = playerCards.get(category);
                 inventory.setItem(index + 9, item(materialForCategory(category), ChatColor.GOLD + category,
                         List.of(text("selection.reveal", Map.of("name", card.name())),
                                 text("selection.click", null))));
@@ -1292,7 +1330,9 @@ public final class GameManager implements Listener {
             if (phase != Phase.DISCUSSION || !uuid.equals(currentSpeaker)) {
                 return;
             }
-            if (!cards.get(uuid).containsKey(category) || !revealed.get(uuid).add(category)) {
+            Map<String, Characteristic> playerCards = cards.get(uuid);
+            Set<String> playerRevealed = revealed.computeIfAbsent(uuid, ignored -> new LinkedHashSet<>());
+            if (playerCards == null || !playerCards.containsKey(category) || !playerRevealed.add(category)) {
                 return;
             }
             currentTurnRevealed = true;
@@ -1301,7 +1341,7 @@ public final class GameManager implements Listener {
             if (player != null) {
                 player.closeInventory();
             }
-            Characteristic card = cards.get(uuid).get(category);
+            Characteristic card = playerCards.get(category);
             GamePlayer participant = players.get(uuid);
             broadcast(text("selection.revealed", Map.of("number", participant.number,
                     "category", category, "name", card.name())));
@@ -1311,8 +1351,12 @@ public final class GameManager implements Listener {
             if (!uuid.equals(currentSpeaker) || phase != Phase.DISCUSSION) {
                 return;
             }
-            for (String category : cards.get(uuid).keySet()) {
-                if (!revealed.get(uuid).contains(category)) {
+            Map<String, Characteristic> playerCards = cards.get(uuid);
+            if (playerCards == null) {
+                return;
+            }
+            for (String category : playerCards.keySet()) {
+                if (!revealed.getOrDefault(uuid, new LinkedHashSet<>()).contains(category)) {
                     reveal(uuid, category);
                     return;
                 }
@@ -1384,6 +1428,7 @@ public final class GameManager implements Listener {
             phase = Phase.OPEN_DISCUSSION;
             currentSpeaker = null;
             phaseStartedAtMillis = System.currentTimeMillis();
+            saveState();
             broadcast(text("phase.all-revealed", null));
             broadcast(text("phase.open-discussion", Map.of("seconds", openDiscussionSeconds)));
             broadcast(text("phase.host-skip", Map.of("seconds", hostSkipDelaySeconds)));
@@ -1397,6 +1442,7 @@ public final class GameManager implements Listener {
             runoffVoting = false;
             runoffCandidates.clear();
             votes.clear();
+            saveState();
             broadcast(text("phase.voting", null));
             broadcast(text("phase.vote-options", Map.of("remaining", skipCount - skipUses)));
             broadcast(text("phase.vote-hint", null));
@@ -1467,6 +1513,11 @@ public final class GameManager implements Listener {
 
         // Применяет голоса, пропуск или случайное выбывание.
         private void resolveVoting() {
+            if (phase != Phase.VOTING) {
+                return;
+            }
+            phase = Phase.RESOLVING;
+            saveState();
             cancelTask(phaseTask);
             int skipVotes = 0;
             Map<Integer, Integer> counts = new LinkedHashMap<>();
@@ -1540,10 +1591,12 @@ public final class GameManager implements Listener {
         }
 
         private void beginRunoff(List<Integer> candidates) {
+            phase = Phase.VOTING;
             runoffVoting = true;
             runoffCandidates.clear();
             runoffCandidates.addAll(candidates);
             votes.clear();
+            saveState();
             broadcast(ChatColor.AQUA + "Ничья. Запускается обязательное повторное голосование между игроками: "
                     + candidates + ". Пропуск недоступен.");
             for (UUID uuid : new ArrayList<>(alive)) {
@@ -1588,6 +1641,8 @@ public final class GameManager implements Listener {
         private void nextRound() {
             cancelTask(phaseTask);
             cancelTask(countdownTask);
+            phase = Phase.RESOLVING;
+            saveState();
             phaseTask = Bukkit.getScheduler().runTaskLater(plugin, this::beginDiscussion, 40L);
         }
 
@@ -1599,6 +1654,7 @@ public final class GameManager implements Listener {
             cancelTask(lobbyTimeout);
             cancelTask(countdownTask);
             phase = Phase.FINISHED;
+            saveState();
             broadcast(ChatColor.GOLD + "Игра завершена! Победители:");
             for (UUID uuid : alive) {
                 GamePlayer participant = players.get(uuid);
@@ -1674,6 +1730,7 @@ public final class GameManager implements Listener {
                 case DISCUSSION -> "обсуждение";
                 case OPEN_DISCUSSION -> "общее обсуждение";
                 case VOTING -> "голосование";
+                case RESOLVING -> "обработка голосования";
                 case FINISHED -> "завершена";
             };
         }
@@ -1694,7 +1751,7 @@ public final class GameManager implements Listener {
             for (Map.Entry<String, Characteristic> entry : playerCards.entrySet()) {
                 Characteristic card = entry.getValue();
                 target.sendMessage(withPrefix(ChatColor.GOLD + entry.getKey() + ": " + ChatColor.WHITE + card.name()));
-                target.sendMessage(ChatColor.GRAY + "  " + card.description());
+                target.sendMessage(withPrefix(ChatColor.GRAY + "  " + card.description()));
             }
         }
 
@@ -1795,7 +1852,7 @@ public final class GameManager implements Listener {
         saveState();
     }
 
-    private enum Phase { LOBBY, STUDY, DISCUSSION, OPEN_DISCUSSION, VOTING, FINISHED }
+    private enum Phase { LOBBY, STUDY, DISCUSSION, OPEN_DISCUSSION, VOTING, RESOLVING, FINISHED }
 
     private static final class Arena {
         private final String id;
