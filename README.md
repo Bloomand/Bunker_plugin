@@ -293,10 +293,12 @@ Bunker/
 ├── gradle.properties
 ├── README.md
 ├── src/main/java/ru/maincraft/bunker/BunkerPlugin.java
+├── src/main/java/ru/maincraft/bunker/Commands.java
+├── src/main/java/ru/maincraft/bunker/ConfigManager.java
+├── src/main/java/ru/maincraft/bunker/GameManager.java
 ├── src/main/resources/plugin.yml
 ├── src/main/resources/characteristics.json
 └── src/main/resources/catastrophes.json
 ```
 
 Папки `build`, `bin` и `server` являются служебными и исключены из Git. Редактируемые исходники находятся в `src/main` и в корне проекта.
-
