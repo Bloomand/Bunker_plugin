@@ -5,6 +5,8 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -25,6 +27,8 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
+import java.io.File;
+import java.io.IOException;
 
 /** Управляет комнатами, этапами игры, таймерами, GUI и голосованием. */
 @SuppressWarnings("deprecation")
@@ -43,6 +47,7 @@ public final class GameManager implements Listener {
 
     private final BunkerPlugin plugin;
     private final ConfigManager configManager;
+    private final File stateFile;
     private final Map<String, Game> games = new LinkedHashMap<>();
     private final Map<UUID, Game> playerGames = new LinkedHashMap<>();
     private final Random random = new Random();
@@ -51,6 +56,7 @@ public final class GameManager implements Listener {
     public GameManager(BunkerPlugin plugin, ConfigManager configManager) {
         this.plugin = plugin;
         this.configManager = configManager;
+        this.stateFile = new File(plugin.getDataFolder(), "games.yml");
         reloadSettings();
     }
 
@@ -74,8 +80,147 @@ public final class GameManager implements Listener {
     }
 
     public void shutdown() {
+        saveState();
         for (Game game : new ArrayList<>(games.values())) {
             game.cancelTasks();
+        }
+    }
+
+    /** Восстанавливает комнаты после перезапуска сервера. */
+    public void restore() {
+        if (!stateFile.isFile()) {
+            return;
+        }
+        YamlConfiguration data = YamlConfiguration.loadConfiguration(stateFile);
+        ConfigurationSection savedGames = data.getConfigurationSection("games");
+        if (savedGames == null) {
+            return;
+        }
+        games.clear();
+        playerGames.clear();
+        int largestId = 0;
+        for (String id : savedGames.getKeys(false)) {
+            ConfigurationSection section = savedGames.getConfigurationSection(id);
+            if (section == null) {
+                continue;
+            }
+            try {
+                UUID host = UUID.fromString(section.getString("host"));
+                Game game = new Game(id, host);
+                game.started = section.getBoolean("started");
+                game.phase = Phase.valueOf(section.getString("phase", Phase.LOBBY.name()));
+                game.round = section.getInt("round");
+                game.skipUses = section.getInt("skip-uses");
+                game.catastrophe = section.getString("catastrophe");
+                loadPlayers(game, section.getConfigurationSection("players"));
+                loadAlive(game, section.getStringList("alive"));
+                loadCards(game, section.getConfigurationSection("cards"));
+                if (game.phase == Phase.FINISHED) {
+                    continue;
+                }
+                games.put(id, game);
+                largestId = Math.max(largestId, Integer.parseInt(id));
+                for (UUID uuid : game.players.keySet()) {
+                    playerGames.put(uuid, game);
+                }
+                game.restartPhaseAfterLoad();
+            } catch (IllegalArgumentException exception) {
+                plugin.getLogger().warning("Пропущена повреждённая сохранённая игра " + id + ".");
+            }
+        }
+        nextGameId = Math.max(nextGameId, largestId + 1);
+        plugin.getLogger().info("Восстановлено игровых комнат: " + games.size());
+    }
+
+    private void loadPlayers(Game game, ConfigurationSection section) {
+        if (section == null) {
+            return;
+        }
+        for (String key : section.getKeys(false)) {
+            UUID uuid = UUID.fromString(key);
+            ConfigurationSection player = section.getConfigurationSection(key);
+            if (player != null) {
+                game.players.put(uuid, new Participant(player.getInt("number"),
+                        player.getString("name", uuid.toString())));
+                Set<String> playerRevealed = new LinkedHashSet<>(player.getStringList("revealed"));
+                game.revealed.put(uuid, playerRevealed);
+            }
+        }
+    }
+
+    private void loadAlive(Game game, List<String> savedAlive) {
+        for (String value : savedAlive) {
+            try {
+                UUID uuid = UUID.fromString(value);
+                if (game.players.containsKey(uuid)) {
+                    game.alive.add(uuid);
+                }
+            } catch (IllegalArgumentException ignored) {
+                // Повреждённый UUID не должен ломать остальные данные комнаты.
+            }
+        }
+    }
+
+    private void loadCards(Game game, ConfigurationSection section) {
+        if (section == null) {
+            return;
+        }
+        for (String uuidValue : section.getKeys(false)) {
+            UUID uuid = UUID.fromString(uuidValue);
+            ConfigurationSection playerCards = section.getConfigurationSection(uuidValue);
+            if (playerCards == null) {
+                continue;
+            }
+            Map<String, Characteristic> cards = new LinkedHashMap<>();
+            for (String category : playerCards.getKeys(false)) {
+                ConfigurationSection card = playerCards.getConfigurationSection(category);
+                if (card != null) {
+                    cards.put(category, new Characteristic(card.getString("name", "Неизвестно"),
+                            card.getString("description", "Описание отсутствует")));
+                }
+            }
+            game.cards.put(uuid, cards);
+            game.revealed.putIfAbsent(uuid, new LinkedHashSet<>());
+        }
+    }
+
+    private void saveState() {
+        YamlConfiguration data = new YamlConfiguration();
+        for (Game game : games.values()) {
+            String path = "games." + game.id;
+            data.set(path + ".host", game.host.toString());
+            data.set(path + ".started", game.started);
+            data.set(path + ".phase", game.phase.name());
+            data.set(path + ".round", game.round);
+            data.set(path + ".skip-uses", game.skipUses);
+            data.set(path + ".catastrophe", game.catastrophe);
+            data.set(path + ".alive", game.alive.stream().map(UUID::toString).toList());
+            for (Map.Entry<UUID, Participant> entry : game.players.entrySet()) {
+                String playerPath = path + ".players." + entry.getKey();
+                Participant participant = entry.getValue();
+                data.set(playerPath + ".name", participant.name);
+                data.set(playerPath + ".number", participant.number);
+                data.set(playerPath + ".revealed", new ArrayList<>(game.revealed.getOrDefault(
+                        entry.getKey(), new LinkedHashSet<>())));
+            }
+            for (Map.Entry<UUID, Map<String, Characteristic>> playerCards : game.cards.entrySet()) {
+                for (Map.Entry<String, Characteristic> card : playerCards.getValue().entrySet()) {
+                    String cardPath = path + ".cards." + playerCards.getKey() + "." + card.getKey();
+                    data.set(cardPath + ".name", card.getValue().name());
+                    data.set(cardPath + ".description", card.getValue().description());
+                }
+            }
+        }
+        try {
+            if (games.isEmpty()) {
+                if (stateFile.isFile() && !stateFile.delete()) {
+                    plugin.getLogger().warning("Не удалось удалить пустой файл games.yml.");
+                }
+            } else {
+                data.save(stateFile);
+            }
+        } catch (IOException exception) {
+            plugin.getLogger().severe("Не удалось сохранить games.yml: " + exception.getMessage());
         }
     }
 
@@ -405,9 +550,47 @@ public final class GameManager implements Listener {
         private long phaseStartedAtMillis;
 
         private Game(String id, Actor hostPlayer) {
-            this.id = id;
-            this.host = hostPlayer.uuid();
+            this(id, hostPlayer.uuid());
             addPlayer(hostPlayer);
+        }
+
+        private Game(String id, UUID host) {
+            this.id = id;
+            this.host = host;
+        }
+
+        private void restartPhaseAfterLoad() {
+            cancelTasks();
+            phaseStartedAtMillis = System.currentTimeMillis();
+            if (!started) {
+                phase = Phase.LOBBY;
+                lobbyTimeout = Bukkit.getScheduler().runTaskLater(plugin,
+                        () -> cancel("Игра автоматически отменена: за 10 минут не набралось готовое лобби."),
+                        lobbySeconds * 20L);
+                startCountdown("Ожидание игроков", lobbySeconds);
+                return;
+            }
+            if (alive.size() <= winnersCount) {
+                finish();
+                return;
+            }
+            switch (phase) {
+                case STUDY -> {
+                    broadcast(text("phase.study", Map.of("seconds", studySeconds)));
+                    startCountdown("Изучение характеристик", studySeconds);
+                    phaseTask = Bukkit.getScheduler().runTaskLater(plugin, this::beginDiscussion,
+                            studySeconds * 20L);
+                }
+                case DISCUSSION -> {
+                    currentSpeakerIndex = 0;
+                    currentSpeaker = null;
+                    broadcast(text("phase.round", Map.of("round", round)));
+                    nextSpeaker();
+                }
+                case OPEN_DISCUSSION -> beginOpenDiscussion();
+                case VOTING -> beginVoting();
+                case LOBBY, FINISHED -> finish();
+            }
         }
 
         private void addPlayer(Actor actor) {
@@ -1026,6 +1209,7 @@ public final class GameManager implements Listener {
                 player.closeInventory();
             }
         }
+        saveState();
     }
 
     private enum Phase { LOBBY, STUDY, DISCUSSION, OPEN_DISCUSSION, VOTING, FINISHED }
