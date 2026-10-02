@@ -49,22 +49,25 @@ public final class GameManager implements Listener {
     private int votingSeconds;
     private int hostSkipDelaySeconds;
     private int skipCount;
-    private String prefix;
+    private final MessageService messages;
     private final Map<String, Arena> arenas = new LinkedHashMap<>();
 
     private final BunkerPlugin plugin;
     private final ConfigManager configManager;
     private final File stateFile;
     private final Map<String, Game> games = new LinkedHashMap<>();
+    private final Map<String, Game> gamesByArena = new LinkedHashMap<>();
     private final Map<UUID, Game> playerGames = new LinkedHashMap<>();
     private final Random random = new Random();
     private int nextGameId = 1;
     private BukkitTask stateSaveTask;
+    private BukkitTask deferredSaveTask;
     private boolean settingsValid;
 
     public GameManager(BunkerPlugin plugin, ConfigManager configManager) {
         this.plugin = plugin;
         this.configManager = configManager;
+        this.messages = new MessageService(configManager);
         this.stateFile = new File(plugin.getDataFolder(), "games.yml");
         reloadSettings();
     }
@@ -85,7 +88,7 @@ public final class GameManager implements Listener {
         votingSeconds = configManager.integer("game.voting-seconds", 60);
         hostSkipDelaySeconds = configManager.integer("game.host-skip-delay-seconds", 30);
         skipCount = configManager.integer("game.skip-count", 2);
-        prefix = configManager.message("prefix", null);
+        messages.reload();
         settingsValid = validateSettings();
         loadArenas();
         if (stateSaveTask == null) {
@@ -198,6 +201,10 @@ public final class GameManager implements Listener {
         if (stateSaveTask != null) {
             stateSaveTask.cancel();
         }
+        if (deferredSaveTask != null) {
+            deferredSaveTask.cancel();
+            deferredSaveTask = null;
+        }
         saveState();
         for (Game game : new ArrayList<>(games.values())) {
             game.cancelTasks();
@@ -223,6 +230,7 @@ public final class GameManager implements Listener {
             return;
         }
         games.clear();
+        gamesByArena.clear();
         playerGames.clear();
         int largestId = 0;
         for (String id : savedGames.getKeys(false)) {
@@ -239,6 +247,9 @@ public final class GameManager implements Listener {
                 if (arena == null) {
                     plugin.getLogger().warning("Игра " + id + " пропущена: арена " + arenaId + " не найдена.");
                     continue;
+                }
+                if (gamesByArena.containsKey(arenaId)) {
+                    throw new IllegalArgumentException("Для арены уже восстановлена другая игра");
                 }
                 game = new Game(id, host, arena);
                 game.started = section.getBoolean("started");
@@ -257,6 +268,7 @@ public final class GameManager implements Listener {
                     throw new IllegalArgumentException("Ведущий отсутствует среди игроков");
                 }
                 games.put(id, game);
+                gamesByArena.put(game.arenaId, game);
                 largestId = Math.max(largestId, numericId);
                 for (UUID uuid : game.players.keySet()) {
                     playerGames.put(uuid, game);
@@ -394,6 +406,17 @@ public final class GameManager implements Listener {
         }
     }
 
+    /** Объединяет несколько быстрых изменений состояния в одну запись на диск. */
+    private void requestSave() {
+        if (deferredSaveTask != null) {
+            return;
+        }
+        deferredSaveTask = Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            deferredSaveTask = null;
+            saveState();
+        }, 1L);
+    }
+
     private void backupState() {
         if (!stateFile.isFile()) {
             return;
@@ -479,7 +502,7 @@ public final class GameManager implements Listener {
     }
 
     private String text(String key, Map<String, ?> placeholders) {
-        return configManager.message(key, placeholders);
+        return messages.get(key, placeholders);
     }
 
     private void setArenaPoint(CommandSender sender, String[] args) {
@@ -604,12 +627,13 @@ public final class GameManager implements Listener {
         String id = String.valueOf(nextGameId++);
         Game game = new Game(id, actor, arena);
         games.put(id, game);
+        gamesByArena.put(arena.id, game);
         playerGames.put(actor.uuid(), game);
         game.lobbyTimeout = Bukkit.getScheduler().runTaskLater(plugin,
                 () -> game.cancel("Игра автоматически отменена: за 10 минут не набралось готовое лобби."),
                 lobbySeconds * 20L);
         game.startCountdown("Ожидание игроков", lobbySeconds);
-        saveState();
+        requestSave();
 
         sender.sendMessage(text("game.created", Map.of("player", actor.name(), "id", id, "arena", arena.name)));
         sender.sendMessage(text("game.connect", Map.of("id", id, "arena", arena.name)));
@@ -643,7 +667,7 @@ public final class GameManager implements Listener {
 
         game.addPlayer(actor);
         playerGames.put(actor.uuid(), game);
-        saveState();
+        requestSave();
         game.broadcast(text("game.joined", Map.of("player", actor.name(), "players", game.players.size(), "max_players", maxPlayers)));
     }
 
@@ -797,12 +821,7 @@ public final class GameManager implements Listener {
     }
 
     private Game findGameForArena(String arenaId) {
-        for (Game game : games.values()) {
-            if (game.arenaId.equalsIgnoreCase(arenaId)) {
-                return game;
-            }
-        }
-        return null;
+        return gamesByArena.get(normalizeArenaId(arenaId));
     }
 
     private String normalizeArenaId(String id) {
@@ -1157,7 +1176,7 @@ public final class GameManager implements Listener {
         private void removePlayer(UUID uuid) {
             players.remove(uuid);
             playerGames.remove(uuid);
-            saveState();
+            requestSave();
         }
 
         private GamePlayer hostPlayer() {
@@ -1227,7 +1246,7 @@ public final class GameManager implements Listener {
             alive.addAll(players.keySet());
             teleportPlayersToArenaAtStart();
             dealCards();
-            saveState();
+            requestSave();
             broadcast(text("phase.started", Map.of("id", id, "players", players.size())));
             broadcast(text("phase.catastrophe", Map.of("catastrophe", catastrophe)));
             broadcast(text("phase.study", Map.of("seconds", studySeconds)));
@@ -1262,7 +1281,7 @@ public final class GameManager implements Listener {
             phase = Phase.DISCUSSION;
             round++;
             currentSpeakerIndex = 0;
-            saveState();
+            requestSave();
             broadcast(text("phase.round", Map.of("round", round)));
             nextSpeaker();
         }
@@ -1336,7 +1355,7 @@ public final class GameManager implements Listener {
                 return;
             }
             currentTurnRevealed = true;
-            saveState();
+            requestSave();
             Player player = Bukkit.getPlayer(uuid);
             if (player != null) {
                 player.closeInventory();
@@ -1428,7 +1447,7 @@ public final class GameManager implements Listener {
             phase = Phase.OPEN_DISCUSSION;
             currentSpeaker = null;
             phaseStartedAtMillis = System.currentTimeMillis();
-            saveState();
+            requestSave();
             broadcast(text("phase.all-revealed", null));
             broadcast(text("phase.open-discussion", Map.of("seconds", openDiscussionSeconds)));
             broadcast(text("phase.host-skip", Map.of("seconds", hostSkipDelaySeconds)));
@@ -1442,7 +1461,7 @@ public final class GameManager implements Listener {
             runoffVoting = false;
             runoffCandidates.clear();
             votes.clear();
-            saveState();
+            requestSave();
             broadcast(text("phase.voting", null));
             broadcast(text("phase.vote-options", Map.of("remaining", skipCount - skipUses)));
             broadcast(text("phase.vote-hint", null));
@@ -1500,7 +1519,7 @@ public final class GameManager implements Listener {
                 return;
             }
             votes.put(voter, targetNumber);
-            saveState();
+            requestSave();
             Player player = Bukkit.getPlayer(voter);
             if (player != null) {
                 player.closeInventory();
@@ -1517,7 +1536,7 @@ public final class GameManager implements Listener {
                 return;
             }
             phase = Phase.RESOLVING;
-            saveState();
+            requestSave();
             cancelTask(phaseTask);
             int skipVotes = 0;
             Map<Integer, Integer> counts = new LinkedHashMap<>();
@@ -1596,7 +1615,7 @@ public final class GameManager implements Listener {
             runoffCandidates.clear();
             runoffCandidates.addAll(candidates);
             votes.clear();
-            saveState();
+            requestSave();
             broadcast(ChatColor.AQUA + "Ничья. Запускается обязательное повторное голосование между игроками: "
                     + candidates + ". Пропуск недоступен.");
             for (UUID uuid : new ArrayList<>(alive)) {
@@ -1708,7 +1727,7 @@ public final class GameManager implements Listener {
                 GamePlayer newHost = players.get(host);
                 broadcast(text("game.host-transferred", Map.of(
                         "old_host", participant.name, "number", newHost.number, "player", newHost.name)));
-                saveState();
+                requestSave();
             }
             if (phase == Phase.DISCUSSION) {
                 if (!wasCurrentSpeaker && removedIndex < currentSpeakerIndex) {
@@ -1817,7 +1836,7 @@ public final class GameManager implements Listener {
         }
 
         private String withPrefix(String message) {
-            return message.startsWith(prefix) ? message : prefix + message;
+            return messages.withPrefix(message);
         }
 
         private void cancel(String reason) {
@@ -1840,6 +1859,7 @@ public final class GameManager implements Listener {
     }
     private void removeGame(Game game) {
         games.remove(game.id);
+        gamesByArena.remove(game.arenaId, game);
         for (UUID uuid : game.players.keySet()) {
             playerGames.remove(uuid);
             Player player = Bukkit.getPlayer(uuid);
@@ -1849,34 +1869,12 @@ public final class GameManager implements Listener {
                 player.closeInventory();
             }
         }
-        saveState();
+        requestSave();
     }
 
     private enum Phase { LOBBY, STUDY, DISCUSSION, OPEN_DISCUSSION, VOTING, RESOLVING, FINISHED }
 
-    private static final class Arena {
-        private final String id;
-        private final String name;
-        private final String description;
-        private final Material icon;
-        private final Location start;
-        private final Set<String> allowedCommands;
-
-        private Arena(String id, String name, String description, Material icon,
-                      Location start, Set<String> allowedCommands) {
-            this.id = id;
-            this.name = name;
-            this.description = description;
-            this.icon = icon;
-            this.start = start;
-            this.allowedCommands = Set.copyOf(allowedCommands);
-        }
-    }
-
     private record Actor(UUID uuid, String name) {
-    }
-
-    static record Characteristic(String name, String description) {
     }
 
     private static final class SelectionHolder implements InventoryHolder {

@@ -23,7 +23,7 @@ import java.util.HashMap;
 /** Загружает игровые JSON-данные из папки плагина. */
 public final class ConfigManager {
     private final JavaPlugin plugin;
-    private final Map<String, List<GameManager.Characteristic>> characteristicSets = new LinkedHashMap<>();
+    private final Map<String, List<Characteristic>> characteristicSets = new LinkedHashMap<>();
     private final List<String> catastrophes = new ArrayList<>();
     private boolean characteristicsLoaded;
     private FileConfiguration messages;
@@ -49,7 +49,7 @@ public final class ConfigManager {
         loadCatastrophes(catastrophesFile);
     }
 
-    public Map<String, List<GameManager.Characteristic>> characteristicSets() {
+    public Map<String, List<Characteristic>> characteristicSets() {
         return characteristicSets;
     }
 
@@ -98,7 +98,7 @@ public final class ConfigManager {
                 Map.Entry<?, ?> categoryEntry = (Map.Entry<?, ?>) entry;
                 String category = String.valueOf(categoryEntry.getKey());
                 JSONArray values = (JSONArray) categoryEntry.getValue();
-                List<GameManager.Characteristic> characteristics = new ArrayList<>();
+                List<Characteristic> characteristics = new ArrayList<>();
                 for (Object value : values) {
                     JSONObject object = (JSONObject) value;
                     String name = String.valueOf(object.get("name"));
@@ -108,7 +108,7 @@ public final class ConfigManager {
                         throw new IllegalStateException("В категории " + category
                                 + " найдена пустая характеристика");
                     }
-                    characteristics.add(new GameManager.Characteristic(name, description));
+                    characteristics.add(new Characteristic(name, description));
                 }
                 if (characteristics.isEmpty()) {
                     throw new IllegalStateException("Категория " + category + " пуста");
