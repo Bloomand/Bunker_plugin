@@ -56,7 +56,8 @@ arena:
   create-menu-title: "&3Выберите арену для новой игры"
   join-menu-title: "&3Активные игры на аренах"
   status-free: "Свободна для новой игры"
-  status-busy: "Занята: %players%/%max_players% игроков"
+  status-waiting: "Ожидание набора: %players%/%max_players% игроков"
+  status-in-game: "Игра уже идёт"
   random-title: "&dСлучайная арена"
   random-lore: "&fВыбрать одну из %count% свободных арен"
   random-join-lore: "&fВыбрать случайную комнату из %count% доступных"
@@ -81,6 +82,7 @@ create:
   first: "%prefix%Сначала создайте игру: /bunker create"
 
 game:
+  creation-disabled: "%prefix%&cСоздание новых игр сейчас запрещено администрацией."
   created: "%prefix%&6Игра создана для %player% на арене &e%arena%&6."
   connect: "%prefix%Арена: %arena%. Подключение игроков: /bunker join %arena%"
   lobby-help: "%prefix%Начать: /bunker start. Отменить: /bunker cancel."

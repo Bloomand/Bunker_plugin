@@ -65,6 +65,10 @@ public final class ConfigManager {
         return plugin.getConfig().contains(path) ? plugin.getConfig().getInt(path) : fallback;
     }
 
+    public boolean bool(String path, boolean fallback) {
+        return plugin.getConfig().contains(path) ? plugin.getConfig().getBoolean(path) : fallback;
+    }
+
     public String message(String key, Map<String, ?> placeholders) {
         String value = messages.getString(key, key);
         Map<String, Object> values = new HashMap<>();

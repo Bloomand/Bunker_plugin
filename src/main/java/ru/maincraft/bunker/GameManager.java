@@ -39,6 +39,7 @@ import java.nio.file.StandardCopyOption;
 /** Управляет комнатами, этапами игры, таймерами, GUI и голосованием. */
 @SuppressWarnings("deprecation")
 public final class GameManager implements Listener {
+    private boolean gameCreationEnabled;
     private int minPlayers;
     private int maxPlayers;
     private int winnersCount;
@@ -55,11 +56,9 @@ public final class GameManager implements Listener {
     private final BunkerPlugin plugin;
     private final ConfigManager configManager;
     private final File stateFile;
-    private final Map<String, Game> games = new LinkedHashMap<>();
     private final Map<String, Game> gamesByArena = new LinkedHashMap<>();
     private final Map<UUID, Game> playerGames = new LinkedHashMap<>();
     private final Random random = new Random();
-    private int nextGameId = 1;
     private BukkitTask stateSaveTask;
     private BukkitTask deferredSaveTask;
     private boolean settingsValid;
@@ -78,6 +77,7 @@ public final class GameManager implements Listener {
     }
 
     private void reloadSettings() {
+        gameCreationEnabled = configManager.bool("game.creation-enabled", true);
         minPlayers = configManager.integer("game.min-players", 6);
         maxPlayers = configManager.integer("game.max-players", 12);
         winnersCount = configManager.integer("game.winners-count", 2);
@@ -206,7 +206,7 @@ public final class GameManager implements Listener {
             deferredSaveTask = null;
         }
         saveState();
-        for (Game game : new ArrayList<>(games.values())) {
+        for (Game game : new ArrayList<>(gamesByArena.values())) {
             game.cancelTasks();
         }
     }
@@ -229,10 +229,8 @@ public final class GameManager implements Listener {
         if (savedGames == null) {
             return;
         }
-        games.clear();
         gamesByArena.clear();
         playerGames.clear();
-        int largestId = 0;
         for (String id : savedGames.getKeys(false)) {
             ConfigurationSection section = savedGames.getConfigurationSection(id);
             if (section == null) {
@@ -240,7 +238,6 @@ public final class GameManager implements Listener {
             }
             Game game = null;
             try {
-                int numericId = Integer.parseInt(id);
                 UUID host = UUID.fromString(section.getString("host"));
                 String arenaId = normalizeArenaId(section.getString("arena", "bunker"));
                 Arena arena = arenas.get(arenaId);
@@ -251,7 +248,7 @@ public final class GameManager implements Listener {
                 if (gamesByArena.containsKey(arenaId)) {
                     throw new IllegalArgumentException("Для арены уже восстановлена другая игра");
                 }
-                game = new Game(id, host, arena);
+                game = new Game(arena.id, host, arena);
                 game.started = section.getBoolean("started");
                 game.phase = Phase.valueOf(section.getString("phase", Phase.LOBBY.name()));
                 game.round = section.getInt("round");
@@ -267,24 +264,21 @@ public final class GameManager implements Listener {
                 if (!game.players.containsKey(host)) {
                     throw new IllegalArgumentException("Ведущий отсутствует среди игроков");
                 }
-                games.put(id, game);
                 gamesByArena.put(game.arenaId, game);
-                largestId = Math.max(largestId, numericId);
                 for (UUID uuid : game.players.keySet()) {
                     playerGames.put(uuid, game);
                 }
                 game.restartPhaseAfterLoad();
             } catch (RuntimeException exception) {
                 if (game != null) {
-                    games.remove(id);
+                    gamesByArena.remove(game.arenaId, game);
                     game.cancelTasks();
                     game.players.keySet().forEach(playerGames::remove);
                 }
                 plugin.getLogger().warning("Пропущена повреждённая сохранённая игра " + id + ".");
             }
         }
-        nextGameId = Math.max(nextGameId, largestId + 1);
-        plugin.getLogger().info("Восстановлено игровых комнат: " + games.size());
+        plugin.getLogger().info("Восстановлено игровых комнат: " + gamesByArena.size());
     }
 
     private void validateRestoredPlayers(Game game) {
@@ -311,12 +305,24 @@ public final class GameManager implements Listener {
             UUID uuid = UUID.fromString(key);
             ConfigurationSection player = section.getConfigurationSection(key);
             if (player != null) {
+                GamePlayer.Status status = readPlayerStatus(player.getString("status"), game.started);
                 game.players.put(uuid, new GamePlayer(uuid,
-                        player.getString("name", uuid.toString()), player.getInt("number")));
+                        player.getString("name", uuid.toString()), player.getInt("number"), status));
                 Set<String> playerRevealed = new LinkedHashSet<>(player.getStringList("revealed"));
                 game.revealed.put(uuid, playerRevealed);
             }
         }
+    }
+
+    private GamePlayer.Status readPlayerStatus(String value, boolean started) {
+        if (value != null) {
+            try {
+                return GamePlayer.Status.valueOf(value);
+            } catch (IllegalArgumentException ignored) {
+                // Старое или повреждённое значение заменяется статусом по состоянию игры.
+            }
+        }
+        return started ? GamePlayer.Status.IN_GAME : GamePlayer.Status.WAITING_FOR_GAME;
     }
 
     private void loadAlive(Game game, List<String> savedAlive) {
@@ -358,7 +364,7 @@ public final class GameManager implements Listener {
 
     private void saveState() {
         YamlConfiguration data = new YamlConfiguration();
-        for (Game game : games.values()) {
+        for (Game game : gamesByArena.values()) {
             String path = "games." + game.id;
             data.set(path + ".host", game.host.toString());
             data.set(path + ".arena", game.arenaId);
@@ -373,6 +379,7 @@ public final class GameManager implements Listener {
                 GamePlayer participant = entry.getValue();
                 data.set(playerPath + ".name", participant.name);
                 data.set(playerPath + ".number", participant.number);
+                data.set(playerPath + ".status", participant.status.name());
                 data.set(playerPath + ".revealed", new ArrayList<>(game.revealed.getOrDefault(
                         entry.getKey(), new LinkedHashSet<>())));
             }
@@ -387,7 +394,7 @@ public final class GameManager implements Listener {
         }
         try {
             backupState();
-            if (games.isEmpty()) {
+            if (gamesByArena.isEmpty()) {
                 if (stateFile.isFile() && !stateFile.delete()) {
                     plugin.getLogger().warning("Не удалось удалить пустой файл games.yml.");
                 }
@@ -580,8 +587,8 @@ public final class GameManager implements Listener {
             sender.sendMessage(text("admin.no-permission", null));
             return;
         }
-        int count = games.size();
-        for (Game game : new ArrayList<>(games.values())) {
+        int count = gamesByArena.size();
+        for (Game game : new ArrayList<>(gamesByArena.values())) {
             game.cancel(text("admin.games-stopped", null));
         }
         sender.sendMessage(text("admin.stopall-success", Map.of("count", count)));
@@ -596,6 +603,10 @@ public final class GameManager implements Listener {
     }
 
     private void create(CommandSender sender, Actor actor, String[] args) {
+        if (!gameCreationEnabled) {
+            sender.sendMessage(text("game.creation-disabled", null));
+            return;
+        }
         if (!settingsValid) {
             sender.sendMessage(text("config.invalid", null));
             return;
@@ -624,9 +635,7 @@ public final class GameManager implements Listener {
             return;
         }
 
-        String id = String.valueOf(nextGameId++);
-        Game game = new Game(id, actor, arena);
-        games.put(id, game);
+        Game game = new Game(arena.id, actor, arena);
         gamesByArena.put(arena.id, game);
         playerGames.put(actor.uuid(), game);
         game.lobbyTimeout = Bukkit.getScheduler().runTaskLater(plugin,
@@ -635,8 +644,8 @@ public final class GameManager implements Listener {
         game.startCountdown("Ожидание игроков", lobbySeconds);
         requestSave();
 
-        sender.sendMessage(text("game.created", Map.of("player", actor.name(), "id", id, "arena", arena.name)));
-        sender.sendMessage(text("game.connect", Map.of("id", id, "arena", arena.name)));
+        sender.sendMessage(text("game.created", Map.of("player", actor.name(), "id", game.id, "arena", arena.name)));
+        sender.sendMessage(text("game.connect", Map.of("id", game.id, "arena", arena.name)));
         sender.sendMessage(text("game.lobby-help", null));
     }
 
@@ -716,7 +725,7 @@ public final class GameManager implements Listener {
             sender.sendMessage(text("status.info", Map.of("id", game.id, "phase", game.phaseName(),
                     "players", game.players.size(), "alive", alivePlayers)));
         } else {
-            sender.sendMessage(text("status.not-in-game", Map.of("games", games.size())));
+            sender.sendMessage(text("status.not-in-game", Map.of("games", gamesByArena.size())));
         }
     }
 
@@ -787,13 +796,13 @@ public final class GameManager implements Listener {
             openArenaMenu(player, true);
             return;
         }
-        if (games.isEmpty()) {
+        if (gamesByArena.isEmpty()) {
             sender.sendMessage(text("games.empty", null));
             return;
         }
         sender.sendMessage(text("games.title", null));
         boolean hasLobbies = false;
-        for (Game game : games.values()) {
+        for (Game game : gamesByArena.values()) {
             if (game.started) {
                 continue;
             }
@@ -813,7 +822,11 @@ public final class GameManager implements Listener {
         }
         sender.sendMessage(text("arena.list-title", null));
         for (Arena arena : arenas.values()) {
-            String status = findGameForArena(arena.id) == null ? "свободна" : "занята";
+            String status = switch (gameStatus(arena.id)) {
+                case FREE -> "свободна";
+                case WAITING -> "ожидание набора игроков";
+                case IN_GAME -> "идёт игра";
+            };
             sender.sendMessage(text("arena.list-item", Map.of("id", arena.id, "name", arena.name,
                     "description", arena.description, "status", status)));
         }
@@ -822,6 +835,11 @@ public final class GameManager implements Listener {
 
     private Game findGameForArena(String arenaId) {
         return gamesByArena.get(normalizeArenaId(arenaId));
+    }
+
+    private GameStatus gameStatus(String arenaId) {
+        Game game = findGameForArena(arenaId);
+        return game == null ? GameStatus.FREE : game.status();
     }
 
     private String normalizeArenaId(String id) {
@@ -842,7 +860,7 @@ public final class GameManager implements Listener {
     }
 
     private Game randomLobby() {
-        List<Game> lobbies = games.values().stream()
+        List<Game> lobbies = gamesByArena.values().stream()
                 .filter(game -> !game.started && game.players.size() < maxPlayers)
                 .toList();
         return lobbies.isEmpty() ? null : lobbies.get(random.nextInt(lobbies.size()));
@@ -868,16 +886,17 @@ public final class GameManager implements Listener {
         int slot = 0;
         int start = page * 45;
         int end = Math.min(start + 45, arenaIds.size());
-        int freeArenas = 0;
+        int freeArenas;
         for (int index = start; index < end; index++) {
             Arena arena = arenas.get(arenaIds.get(index));
             Game game = findGameForArena(arena.id);
-            if (game == null || (!game.started && game.players.size() < maxPlayers)) {
-                freeArenas++;
-            }
             holder.arenas.put(slot, arena.id);
-            String status = game == null ? text("arena.status-free", null)
-                    : text("arena.status-busy", Map.of("players", game.players.size(), "max_players", maxPlayers));
+            String status = switch (gameStatus(arena.id)) {
+                case FREE -> text("arena.status-free", null);
+                case WAITING -> text("arena.status-waiting", Map.of(
+                        "players", game.players.size(), "max_players", maxPlayers));
+                case IN_GAME -> text("arena.status-in-game", null);
+            };
             List<String> lore = new ArrayList<>();
             lore.add(ChatColor.GRAY + "ID: " + arena.id);
             lore.add(ChatColor.WHITE + arena.description);
@@ -886,15 +905,14 @@ public final class GameManager implements Listener {
                 lore.add(text("arena.host", Map.of("player", game.hostPlayer().name)));
                 lore.add(text("arena.waiting", Map.of("players", game.waitingPlayers())));
             } else if (game == null) {
-                lore.add(ChatColor.YELLOW + (game == null
-                        ? "Нажмите, чтобы создать игру" : "Арена уже занята"));
+                lore.add(ChatColor.YELLOW + "Нажмите, чтобы создать игру");
             } else {
                 lore.add(ChatColor.YELLOW + "Нажмите, чтобы присоединиться");
             }
             inventory.setItem(slot++, item(arena.icon, ChatColor.GOLD + arena.name, lore));
         }
         freeArenas = joinMode
-                ? (int) games.values().stream().filter(game -> !game.started && game.players.size() < maxPlayers).count()
+                ? (int) gamesByArena.values().stream().filter(game -> !game.started && game.players.size() < maxPlayers).count()
                 : (int) arenas.values().stream().filter(arena -> findGameForArena(arena.id) == null).count();
         if (page > 0) {
             inventory.setItem(45, item(Material.ARROW, text("arena.previous-page", null), List.of()));
@@ -970,7 +988,7 @@ public final class GameManager implements Listener {
             }
         } else if (holder instanceof SelectionHolder selection) {
             event.setCancelled(true);
-            Game game = games.get(selection.gameId);
+            Game game = gamesByArena.get(selection.gameId);
             if (event.getRawSlot() == 26) {
                 player.closeInventory();
                 return;
@@ -988,7 +1006,7 @@ public final class GameManager implements Listener {
                 player.closeInventory();
                 return;
             }
-            Game game = games.get(voteHolder.gameId);
+            Game game = gamesByArena.get(voteHolder.gameId);
             if (game != null) {
                 Integer vote = voteHolder.choices.get(event.getRawSlot());
                 if (vote != null) {
@@ -1190,6 +1208,10 @@ public final class GameManager implements Listener {
                     .orElse("—");
         }
 
+        private GameStatus status() {
+            return started ? GameStatus.IN_GAME : GameStatus.WAITING;
+        }
+
         private void teleportPlayersToArenaAtStart() {
             teleportPlayers(players.keySet());
         }
@@ -1238,6 +1260,9 @@ public final class GameManager implements Listener {
             }
             started = true;
             phase = Phase.STUDY;
+            for (GamePlayer participant : players.values()) {
+                participant.status = GamePlayer.Status.IN_GAME;
+            }
             phaseStartedAtMillis = System.currentTimeMillis();
             List<String> catastrophes = configManager.catastrophes();
             catastrophe = catastrophes.get(random.nextInt(catastrophes.size()));
@@ -1858,7 +1883,6 @@ public final class GameManager implements Listener {
         }
     }
     private void removeGame(Game game) {
-        games.remove(game.id);
         gamesByArena.remove(game.arenaId, game);
         for (UUID uuid : game.players.keySet()) {
             playerGames.remove(uuid);
@@ -1871,6 +1895,8 @@ public final class GameManager implements Listener {
         }
         requestSave();
     }
+
+    private enum GameStatus { FREE, WAITING, IN_GAME }
 
     private enum Phase { LOBBY, STUDY, DISCUSSION, OPEN_DISCUSSION, VOTING, RESOLVING, FINISHED }
 

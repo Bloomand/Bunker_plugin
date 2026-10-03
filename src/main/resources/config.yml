@@ -1,4 +1,6 @@
 game:
+  # Разрешено ли создавать новые игровые комнаты.
+  creation-enabled: true
   min-players: 6
   max-players: 12
   winners-count: 2
