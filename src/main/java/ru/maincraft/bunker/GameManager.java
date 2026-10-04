@@ -128,6 +128,11 @@ public final class GameManager implements Listener {
                 if (arena == null) {
                     continue;
                 }
+                if (!isValidArenaId(id)) {
+                    plugin.getLogger().warning("Арена " + id
+                            + " пропущена: ID должен содержать от 1 до 32 букв, цифр, _ или -.");
+                    continue;
+                }
                 String normalizedId = normalizeArenaId(id);
                 Arena loaded = readArena(normalizedId, arena);
                 if (loaded.start == null) {
@@ -254,9 +259,16 @@ public final class GameManager implements Listener {
                 game.round = section.getInt("round");
                 game.skipUses = section.getInt("skip-uses");
                 game.catastrophe = section.getString("catastrophe");
+                String savedSpeaker = section.getString("current-speaker");
+                if (savedSpeaker != null) {
+                    game.currentSpeaker = UUID.fromString(savedSpeaker);
+                }
+                game.currentSpeakerIndex = section.getInt("current-speaker-index", 0);
+                game.currentTurnRevealed = section.getBoolean("current-turn-revealed", false);
                 loadPlayers(game, section.getConfigurationSection("players"));
                 loadAlive(game, section.getStringList("alive"));
                 loadCards(game, section.getConfigurationSection("cards"));
+                sanitizeRevealedCards(game);
                 if (game.phase == Phase.FINISHED) {
                     continue;
                 }
@@ -362,6 +374,17 @@ public final class GameManager implements Listener {
         }
     }
 
+    private void sanitizeRevealedCards(Game game) {
+        for (Map.Entry<UUID, Set<String>> entry : game.revealed.entrySet()) {
+            Map<String, Characteristic> playerCards = game.cards.get(entry.getKey());
+            if (playerCards == null) {
+                entry.getValue().clear();
+                continue;
+            }
+            entry.getValue().removeIf(category -> !playerCards.containsKey(category));
+        }
+    }
+
     private void saveState() {
         YamlConfiguration data = new YamlConfiguration();
         for (Game game : gamesByArena.values()) {
@@ -373,6 +396,10 @@ public final class GameManager implements Listener {
             data.set(path + ".round", game.round);
             data.set(path + ".skip-uses", game.skipUses);
             data.set(path + ".catastrophe", game.catastrophe);
+            data.set(path + ".current-speaker", game.currentSpeaker == null
+                    ? null : game.currentSpeaker.toString());
+            data.set(path + ".current-speaker-index", game.currentSpeakerIndex);
+            data.set(path + ".current-turn-revealed", game.currentTurnRevealed);
             data.set(path + ".alive", game.alive.stream().map(UUID::toString).toList());
             for (Map.Entry<UUID, GamePlayer> entry : game.players.entrySet()) {
                 String playerPath = path + ".players." + entry.getKey();
@@ -512,6 +539,10 @@ public final class GameManager implements Listener {
         return messages.get(key, placeholders);
     }
 
+    private String formatDuration(int seconds) {
+        return String.format("%02d:%02d", seconds / 60, seconds % 60);
+    }
+
     private void setArenaPoint(CommandSender sender, String[] args) {
         if (!(sender instanceof Player player)) {
             sender.sendMessage(text("command.players-only", null));
@@ -527,7 +558,7 @@ public final class GameManager implements Listener {
         }
 
         String arenaId = normalizeArenaId(args[1]);
-        if (!arenaId.matches("[\\p{L}\\p{N}_-]+")) {
+        if (!isValidArenaId(arenaId)) {
             player.sendMessage(text("arena.invalid-id", null));
             return;
         }
@@ -563,7 +594,7 @@ public final class GameManager implements Listener {
             return;
         }
         String arenaId = normalizeArenaId(args[1]);
-        if (!arenaId.matches("[\\p{L}\\p{N}_-]+")) {
+        if (!isValidArenaId(arenaId)) {
             sender.sendMessage(text("arena.invalid-id", null));
             return;
         }
@@ -625,6 +656,10 @@ public final class GameManager implements Listener {
             return;
         }
         String arenaId = normalizeArenaId(args[1]);
+        if (!isValidArenaId(arenaId)) {
+            sender.sendMessage(text("arena.invalid-id", null));
+            return;
+        }
         Arena arena = arenas.get(arenaId);
         if (arena == null || arena.start == null) {
             sender.sendMessage(text("arena.not-found", Map.of("id", arenaId)));
@@ -636,12 +671,14 @@ public final class GameManager implements Listener {
         }
 
         Game game = new Game(arena.id, actor, arena);
+        int lobbyDurationSeconds = lobbySeconds;
         gamesByArena.put(arena.id, game);
         playerGames.put(actor.uuid(), game);
         game.lobbyTimeout = Bukkit.getScheduler().runTaskLater(plugin,
-                () -> game.cancel("Игра автоматически отменена: за 10 минут не набралось готовое лобби."),
-                lobbySeconds * 20L);
-        game.startCountdown("Ожидание игроков", lobbySeconds);
+                () -> game.cancel(text("phase.lobby-timeout", Map.of(
+                        "time", formatDuration(lobbyDurationSeconds)))),
+                lobbyDurationSeconds * 20L);
+        game.startCountdown(text("phase.countdown-lobby", null), lobbyDurationSeconds);
         requestSave();
 
         sender.sendMessage(text("game.created", Map.of("player", actor.name(), "id", game.id, "arena", arena.name)));
@@ -688,7 +725,7 @@ public final class GameManager implements Listener {
             game.leaveDuringGame(actor.uuid());
             playerGames.remove(actor.uuid());
         } else if (game.host.equals(actor.uuid())) {
-            game.cancel("Игра отменена: ведущий покинул лобби.");
+            game.cancel(text("game.cancelled-by-host-left", null));
         } else {
             game.removePlayer(actor.uuid());
             playerGames.remove(actor.uuid());
@@ -712,7 +749,7 @@ public final class GameManager implements Listener {
         if (game == null) {
             sender.sendMessage(text("command.not-in-game", null));
         } else if (game.host.equals(actor.uuid())) {
-            game.cancel("Игра отменена ведущим.");
+            game.cancel(text("game.cancelled-by-host", null));
         } else {
             sender.sendMessage(text("game.not-host", null));
         }
@@ -823,9 +860,9 @@ public final class GameManager implements Listener {
         sender.sendMessage(text("arena.list-title", null));
         for (Arena arena : arenas.values()) {
             String status = switch (gameStatus(arena.id)) {
-                case FREE -> "свободна";
-                case WAITING -> "ожидание набора игроков";
-                case IN_GAME -> "идёт игра";
+                case FREE -> text("arena.status-free-short", null);
+                case WAITING -> text("arena.status-waiting-short", null);
+                case IN_GAME -> text("arena.status-in-game", null);
             };
             sender.sendMessage(text("arena.list-item", Map.of("id", arena.id, "name", arena.name,
                     "description", arena.description, "status", status)));
@@ -843,7 +880,12 @@ public final class GameManager implements Listener {
     }
 
     private String normalizeArenaId(String id) {
-        return id.toLowerCase(java.util.Locale.ROOT);
+        return id == null ? "" : id.trim().toLowerCase(java.util.Locale.ROOT);
+    }
+
+    private boolean isValidArenaId(String id) {
+        return id != null && id.length() >= 1 && id.length() <= 32
+                && id.matches("[\\p{L}\\p{N}_-]+");
     }
 
     private String findArenaConfigKey(String normalizedId) {
@@ -893,21 +935,21 @@ public final class GameManager implements Listener {
             holder.arenas.put(slot, arena.id);
             String status = switch (gameStatus(arena.id)) {
                 case FREE -> text("arena.status-free", null);
-                case WAITING -> text("arena.status-waiting", Map.of(
+                case WAITING -> text(joinMode ? "arena.status-waiting" : "arena.status-busy-waiting", Map.of(
                         "players", game.players.size(), "max_players", maxPlayers));
-                case IN_GAME -> text("arena.status-in-game", null);
+                case IN_GAME -> text(joinMode ? "arena.status-in-game" : "arena.status-busy-in-game", null);
             };
             List<String> lore = new ArrayList<>();
-            lore.add(ChatColor.GRAY + "ID: " + arena.id);
+            lore.add(text("arena.menu-id", Map.of("id", arena.id)));
             lore.add(ChatColor.WHITE + arena.description);
             lore.add(ChatColor.AQUA + status);
             if (joinMode) {
                 lore.add(text("arena.host", Map.of("player", game.hostPlayer().name)));
                 lore.add(text("arena.waiting", Map.of("players", game.waitingPlayers())));
             } else if (game == null) {
-                lore.add(ChatColor.YELLOW + "Нажмите, чтобы создать игру");
+                lore.add(text("arena.create-hint-short", null));
             } else {
-                lore.add(ChatColor.YELLOW + "Нажмите, чтобы присоединиться");
+                lore.add(text("arena.status-busy-hint", null));
             }
             inventory.setItem(slot++, item(arena.icon, ChatColor.GOLD + arena.name, lore));
         }
@@ -1149,10 +1191,12 @@ public final class GameManager implements Listener {
             phaseStartedAtMillis = System.currentTimeMillis();
             if (!started) {
                 phase = Phase.LOBBY;
+                int lobbyDurationSeconds = lobbySeconds;
                 lobbyTimeout = Bukkit.getScheduler().runTaskLater(plugin,
-                        () -> cancel("Игра автоматически отменена: за 10 минут не набралось готовое лобби."),
-                        lobbySeconds * 20L);
-                startCountdown("Ожидание игроков", lobbySeconds);
+                        () -> cancel(text("phase.lobby-timeout", Map.of(
+                                "time", formatDuration(lobbyDurationSeconds)))),
+                        lobbyDurationSeconds * 20L);
+                startCountdown(text("phase.countdown-lobby", null), lobbyDurationSeconds);
                 return;
             }
             if (alive.size() <= winnersCount) {
@@ -1166,15 +1210,21 @@ public final class GameManager implements Listener {
                     for (UUID uuid : new ArrayList<>(alive)) {
                         sendCards(uuid, null);
                     }
-                    startCountdown("Изучение характеристик", studySeconds);
+                    startCountdown(text("phase.countdown-study", null), studySeconds);
                     phaseTask = Bukkit.getScheduler().runTaskLater(plugin, this::beginDiscussion,
                             studySeconds * 20L);
                 }
                 case DISCUSSION -> {
-                    currentSpeakerIndex = 0;
-                    currentSpeaker = null;
                     broadcast(text("phase.round", Map.of("round", round)));
-                    nextSpeaker();
+                    boolean canResumeTurn = currentSpeaker != null && alive.contains(currentSpeaker);
+                    if (canResumeTurn) {
+                        currentSpeakerIndex = alive.indexOf(currentSpeaker);
+                    } else {
+                        currentSpeaker = null;
+                        currentTurnRevealed = false;
+                        currentSpeakerIndex = Math.max(0, Math.min(currentSpeakerIndex, alive.size()));
+                    }
+                    nextSpeaker(canResumeTurn);
                 }
                 case OPEN_DISCUSSION -> beginOpenDiscussion();
                 case VOTING -> beginVoting();
@@ -1255,7 +1305,7 @@ public final class GameManager implements Listener {
                 return;
             }
             if (!configManager.isCharacteristicsLoaded()) {
-                message(host, "§cИгра не может начаться: файл characteristics.json повреждён или не загружен.");
+                message(host, text("game.characteristics-unavailable", null));
                 return;
             }
             started = true;
@@ -1280,7 +1330,7 @@ public final class GameManager implements Listener {
             for (UUID uuid : alive) {
                 sendCards(uuid, null);
             }
-            startCountdown("Изучение характеристик", studySeconds);
+            startCountdown(text("phase.countdown-study", null), studySeconds);
             phaseTask = Bukkit.getScheduler().runTaskLater(plugin, this::beginDiscussion, studySeconds * 20L);
         }
 
@@ -1312,6 +1362,10 @@ public final class GameManager implements Listener {
         }
 
         private void nextSpeaker() {
+            nextSpeaker(false);
+        }
+
+        private void nextSpeaker(boolean resumeCurrentTurn) {
             if (alive.size() <= winnersCount) {
                 finish();
                 return;
@@ -1320,14 +1374,17 @@ public final class GameManager implements Listener {
                 beginOpenDiscussion();
                 return;
             }
-            currentSpeaker = alive.get(currentSpeakerIndex);
-            currentTurnRevealed = false;
+            if (!resumeCurrentTurn) {
+                currentSpeaker = alive.get(currentSpeakerIndex);
+                currentTurnRevealed = false;
+            }
             GamePlayer participant = players.get(currentSpeaker);
+            requestSave();
             broadcast(text("phase.speaker", Map.of("number", participant.number, "player", participant.name)));
             cancelTask(phaseTask);
             cancelTask(countdownTask);
-            if (openSelection(Bukkit.getPlayer(currentSpeaker))) {
-                startCountdown("Ход игрока №" + participant.number + " | /bunker pass", speechSeconds);
+            if (currentTurnRevealed || openSelection(Bukkit.getPlayer(currentSpeaker))) {
+                startCountdown(text("phase.countdown-turn", Map.of("number", participant.number)), speechSeconds);
                 phaseTask = Bukkit.getScheduler().runTaskLater(plugin,
                         this::endTurn, speechSeconds * 20L);
             } else {
@@ -1411,7 +1468,9 @@ public final class GameManager implements Listener {
             if (phase != Phase.DISCUSSION || currentSpeaker == null || !alive.contains(currentSpeaker)) {
                 return;
             }
-            revealFirst(currentSpeaker);
+            if (!currentTurnRevealed) {
+                revealFirst(currentSpeaker);
+            }
             currentSpeakerIndex++;
             nextSpeaker();
         }
@@ -1422,7 +1481,7 @@ public final class GameManager implements Listener {
                 return;
             }
             if (phase != Phase.DISCUSSION || !uuid.equals(currentSpeaker)) {
-                message(uuid, "§cСейчас не ваш ход.");
+                message(uuid, text("game.not-your-turn", null));
                 return;
             }
             cancelTask(phaseTask);
@@ -1431,26 +1490,26 @@ public final class GameManager implements Listener {
 
         private void skipPhase(UUID uuid) {
             if (!uuid.equals(host)) {
-                message(uuid, "§cТолько ведущий может досрочно завершать этот этап.");
+                message(uuid, text("game.host-only-skip", null));
                 return;
             }
             if (phase != Phase.STUDY && phase != Phase.OPEN_DISCUSSION) {
-                message(uuid, "§cКоманда /bunker pass доступна ведущему только во время изучения или общего обсуждения.");
+                message(uuid, text("game.skip-unavailable", null));
                 return;
             }
             long elapsedSeconds = (System.currentTimeMillis() - phaseStartedAtMillis) / 1000L;
             if (elapsedSeconds < hostSkipDelaySeconds) {
-                message(uuid, "§cДосрочно завершить этап можно через "
-                        + (hostSkipDelaySeconds - elapsedSeconds) + " сек.");
+                message(uuid, text("game.skip-delay", Map.of(
+                        "seconds", hostSkipDelaySeconds - elapsedSeconds)));
                 return;
             }
             cancelTask(phaseTask);
             cancelTask(countdownTask);
             if (phase == Phase.STUDY) {
-                broadcast(ChatColor.GOLD + "Ведущий досрочно завершил изучение характеристик.");
+                broadcast(text("phase.skip-study", null));
                 beginDiscussion();
             } else {
-                broadcast(ChatColor.GOLD + "Ведущий досрочно завершил общее обсуждение.");
+                broadcast(text("phase.skip-open-discussion", null));
                 beginVoting();
             }
         }
@@ -1465,7 +1524,7 @@ public final class GameManager implements Listener {
                 openVoting(uuid);
                 return;
             }
-            message(uuid, "Сейчас для вас нет доступного интерфейса выбора.");
+            message(uuid, text("game.no-interface", null));
         }
 
         private void beginOpenDiscussion() {
@@ -1476,7 +1535,7 @@ public final class GameManager implements Listener {
             broadcast(text("phase.all-revealed", null));
             broadcast(text("phase.open-discussion", Map.of("seconds", openDiscussionSeconds)));
             broadcast(text("phase.host-skip", Map.of("seconds", hostSkipDelaySeconds)));
-            startCountdown("Общее обсуждение перед голосованием", openDiscussionSeconds);
+            startCountdown(text("phase.countdown-open-discussion", null), openDiscussionSeconds);
             cancelTask(phaseTask);
             phaseTask = Bukkit.getScheduler().runTaskLater(plugin, this::beginVoting, openDiscussionSeconds * 20L);
         }
@@ -1494,7 +1553,7 @@ public final class GameManager implements Listener {
                 openVoting(uuid);
             }
             cancelTask(phaseTask);
-            startCountdown("Голосование", votingSeconds);
+            startCountdown(text("phase.countdown-voting", null), votingSeconds);
             phaseTask = Bukkit.getScheduler().runTaskLater(plugin, this::resolveVoting, votingSeconds * 20L);
         }
 
@@ -1530,7 +1589,7 @@ public final class GameManager implements Listener {
                 return;
             }
             if (runoffVoting && targetNumber == 0) {
-                message(voter, "В повторном голосовании пропуск недоступен.");
+                message(voter, text("vote.runoff-no-skip", null));
                 return;
             }
             if (targetNumber == 0 && skipUses >= skipCount) {
@@ -1596,19 +1655,18 @@ public final class GameManager implements Listener {
                     UUID eliminated = alive.get(random.nextInt(alive.size()));
                     GamePlayer participant = players.get(eliminated);
                     alive.remove(eliminated);
-                    String reason = skipUses >= skipCount
-                            ? "Пропуски уже использованы"
-                            : "в повторном голосовании никто не проголосовал";
-                    broadcast(ChatColor.RED + "Ни один игрок не получил голоса: " + reason
-                            + ", поэтому случайно выбывает игрок №"
-                            + participant.number + " (" + participant.name + ").");
+                    String reason = text(skipUses >= skipCount
+                            ? "vote.random-reason-skips-used"
+                            : "vote.random-reason-runoff-empty", null);
+                    broadcast(text("vote.random-elimination", Map.of(
+                            "reason", reason, "number", participant.number, "player", participant.name)));
                     if (alive.size() <= winnersCount) {
                         finish();
                     } else {
                         nextRound();
                     }
                 } else {
-                    broadcast(ChatColor.GOLD + "Ни один игрок не получил голосов. Никто не выбывает.");
+                    broadcast(text("vote.no-votes", null));
                     nextRound();
                 }
                 return;
@@ -1618,7 +1676,7 @@ public final class GameManager implements Listener {
                 return;
             }
             if (runoffVoting && winners.size() > 1) {
-                broadcast(ChatColor.AQUA + "В повторном голосовании снова ничья. Повторяем его.");
+                broadcast(text("vote.tie-again", null));
                 beginRunoff(winners);
                 return;
             }
@@ -1626,7 +1684,7 @@ public final class GameManager implements Listener {
             UUID eliminated = findPlayerByNumber(eliminatedNumber);
             alive.remove(eliminated);
             GamePlayer participant = players.get(eliminated);
-            broadcast(ChatColor.RED + "Игрок №" + participant.number + " (" + participant.name + ") покидает бункер.");
+            broadcast(text("vote.eliminated", Map.of("number", participant.number, "player", participant.name)));
             if (alive.size() <= winnersCount) {
                 finish();
             } else {
@@ -1641,13 +1699,12 @@ public final class GameManager implements Listener {
             runoffCandidates.addAll(candidates);
             votes.clear();
             requestSave();
-            broadcast(ChatColor.AQUA + "Ничья. Запускается обязательное повторное голосование между игроками: "
-                    + candidates + ". Пропуск недоступен.");
+            broadcast(text("vote.tie", Map.of("candidates", candidates)));
             for (UUID uuid : new ArrayList<>(alive)) {
                 openVoting(uuid);
             }
             cancelTask(phaseTask);
-            startCountdown("Повторное голосование", votingSeconds);
+            startCountdown(text("phase.countdown-runoff", null), votingSeconds);
             phaseTask = Bukkit.getScheduler().runTaskLater(plugin, this::resolveVoting, votingSeconds * 20L);
         }
 
@@ -1699,19 +1756,20 @@ public final class GameManager implements Listener {
             cancelTask(countdownTask);
             phase = Phase.FINISHED;
             saveState();
-            broadcast(ChatColor.GOLD + "Игра завершена! Победители:");
+            broadcast(text("finish.title", null));
             for (UUID uuid : alive) {
                 GamePlayer participant = players.get(uuid);
-                broadcast(ChatColor.AQUA + "№" + participant.number + " — " + participant.name);
+                broadcast(text("finish.winner", Map.of("number", participant.number, "player", participant.name)));
             }
-            broadcast(ChatColor.GOLD + "Полные характеристики всех участников:");
+            broadcast(text("finish.all-cards", null));
             for (UUID uuid : players.keySet()) {
                 GamePlayer participant = players.get(uuid);
-                broadcast(ChatColor.AQUA + "№" + participant.number + " — " + participant.name + ":");
+                broadcast(text("finish.player", Map.of("number", participant.number, "player", participant.name)));
                 Map<String, Characteristic> playerCards = cards.get(uuid);
                 if (playerCards != null) {
                     for (Map.Entry<String, Characteristic> entry : playerCards.entrySet()) {
-                        broadcast(ChatColor.GOLD + entry.getKey() + ": " + ChatColor.WHITE + entry.getValue().name());
+                        broadcast(text("finish.card", Map.of("category", entry.getKey(),
+                                "name", entry.getValue().name())));
                     }
                 }
             }
@@ -1721,7 +1779,7 @@ public final class GameManager implements Listener {
         private void playerQuit(UUID uuid) {
             if (!started) {
                 if (uuid.equals(host)) {
-                    cancel("Игра отменена: ведущий вышел с сервера.");
+                    cancel(text("game.cancelled-by-host-quit", null));
                 } else {
                     removePlayer(uuid);
                 }
@@ -1741,7 +1799,7 @@ public final class GameManager implements Listener {
             votes.remove(uuid);
             votes.values().removeIf(number -> number == removedNumber);
             GamePlayer participant = players.get(uuid);
-            broadcast(ChatColor.RED + participant.name + " покинул игру и считается выбывшим.");
+            broadcast(text("game.voluntary-left", Map.of("player", participant.name)));
 
             if (alive.size() <= winnersCount) {
                 finish();
@@ -1765,17 +1823,18 @@ public final class GameManager implements Listener {
             } else if (phase == Phase.VOTING && votes.size() >= alive.size()) {
                 resolveVoting();
             }
+            requestSave();
         }
 
         private String phaseName() {
             return switch (phase) {
-                case LOBBY -> "ожидание игроков";
-                case STUDY -> "изучение характеристик";
-                case DISCUSSION -> "обсуждение";
-                case OPEN_DISCUSSION -> "общее обсуждение";
-                case VOTING -> "голосование";
-                case RESOLVING -> "обработка голосования";
-                case FINISHED -> "завершена";
+                case LOBBY -> text("phase.name-lobby", null);
+                case STUDY -> text("phase.name-study", null);
+                case DISCUSSION -> text("phase.name-discussion", null);
+                case OPEN_DISCUSSION -> text("phase.name-open-discussion", null);
+                case VOTING -> text("phase.name-voting", null);
+                case RESOLVING -> text("phase.name-resolving", null);
+                case FINISHED -> text("phase.name-finished", null);
             };
         }
 
@@ -1791,35 +1850,39 @@ public final class GameManager implements Listener {
             if (target == null) {
                 return;
             }
-            target.sendMessage(withPrefix(ChatColor.AQUA + "Характеристики игрока " + players.get(uuid).name + ":"));
+            target.sendMessage(text("cards.title", Map.of("player", players.get(uuid).name)));
             for (Map.Entry<String, Characteristic> entry : playerCards.entrySet()) {
                 Characteristic card = entry.getValue();
-                target.sendMessage(withPrefix(ChatColor.GOLD + entry.getKey() + ": " + ChatColor.WHITE + card.name()));
-                target.sendMessage(withPrefix(ChatColor.GRAY + "  " + card.description()));
+                target.sendMessage(text("cards.card", Map.of("category", entry.getKey(), "name", card.name())));
+                target.sendMessage(text("cards.description", Map.of("description", card.description())));
             }
         }
 
         private void openPlayers(Player viewer) {
             Inventory inventory = Bukkit.createInventory(new PlayersHolder(), 54,
-                    ChatColor.DARK_AQUA + "Игроки и раскрытые карты");
+                    text("players-menu.title", null));
             int slot = 0;
             for (UUID uuid : players.keySet()) {
                 GamePlayer participant = players.get(uuid);
                 List<String> lore = new ArrayList<>();
-                lore.add(ChatColor.GRAY + "Номер: " + participant.number);
+                lore.add(text("players-menu.number", Map.of("number", participant.number)));
                 if (!alive.contains(uuid)) {
-                    lore.add(ChatColor.RED + "Игрок покинул бункер");
+                    lore.add(text("players-menu.eliminated", null));
                 }
 
                 Set<String> playerRevealed = revealed.get(uuid);
                 Map<String, Characteristic> playerCards = cards.get(uuid);
                 if (playerRevealed == null || playerRevealed.isEmpty()) {
-                    lore.add(ChatColor.DARK_GRAY + "Нет раскрытых характеристик");
+                    lore.add(text("players-menu.no-revealed", null));
                 } else {
-                    lore.add(ChatColor.AQUA + "Раскрытые характеристики:");
+                    lore.add(text("players-menu.revealed", null));
                     for (String category : playerRevealed) {
-                        Characteristic card = playerCards.get(category);
-                        lore.add(ChatColor.GOLD + category + ": " + ChatColor.WHITE + card.name());
+                        Characteristic card = playerCards == null ? null : playerCards.get(category);
+                        if (card == null) {
+                            lore.add(text("players-menu.missing-card", Map.of("category", category)));
+                        } else {
+                            lore.add(text("players-menu.card", Map.of("category", category, "name", card.name())));
+                        }
                     }
                 }
 
