@@ -482,6 +482,11 @@ public final class GameManager implements Listener {
             return true;
         }
 
+        if (args[0].equalsIgnoreCase("rules")) {
+            rules(sender);
+            return true;
+        }
+
         if (args[0].equalsIgnoreCase("setarena")) {
             setArenaPoint(sender, args);
             return true;
@@ -684,6 +689,7 @@ public final class GameManager implements Listener {
         sender.sendMessage(text("game.created", Map.of("player", actor.name(), "id", game.id, "arena", arena.name)));
         sender.sendMessage(text("game.connect", Map.of("id", game.id, "arena", arena.name)));
         sender.sendMessage(text("game.lobby-help", null));
+        sender.sendMessage(text("game.lobby-instructions", Map.of("max_players", maxPlayers)));
     }
 
     private void join(CommandSender sender, Actor actor, String[] args) {
@@ -715,6 +721,9 @@ public final class GameManager implements Listener {
         playerGames.put(actor.uuid(), game);
         requestSave();
         game.broadcast(text("game.joined", Map.of("player", actor.name(), "players", game.players.size(), "max_players", maxPlayers)));
+        if (game.players.size() == minPlayers) {
+            game.broadcast(text("game.minimum-reached", Map.of("min_players", minPlayers)));
+        }
     }
 
     private void leave(CommandSender sender, Actor actor) {
@@ -977,8 +986,14 @@ public final class GameManager implements Listener {
 
     private void help(CommandSender sender) {
         sender.sendMessage(text("help.title", null));
-        for (String key : List.of("create", "join", "start", "cancel", "status", "cards", "players", "open", "vote", "pass", "games", "reload", "setarena", "deletearena", "stopall")) {
+        for (String key : List.of("create", "join", "start", "cancel", "status", "cards", "players", "open", "vote", "pass", "games", "rules", "reload", "setarena", "deletearena", "stopall")) {
             sender.sendMessage(text("help." + key, null));
+        }
+    }
+
+    private void rules(CommandSender sender) {
+        for (String line : configManager.messageList("rules")) {
+            sender.sendMessage(line);
         }
     }
 
@@ -1207,6 +1222,7 @@ public final class GameManager implements Listener {
             switch (phase) {
                 case STUDY -> {
                     broadcast(text("phase.study", Map.of("seconds", studySeconds)));
+                    broadcast(text("phase.study-help", null));
                     for (UUID uuid : new ArrayList<>(alive)) {
                         sendCards(uuid, null);
                     }
@@ -1216,6 +1232,7 @@ public final class GameManager implements Listener {
                 }
                 case DISCUSSION -> {
                     broadcast(text("phase.round", Map.of("round", round)));
+                    broadcast(text("phase.discussion-help", null));
                     boolean canResumeTurn = currentSpeaker != null && alive.contains(currentSpeaker);
                     if (canResumeTurn) {
                         currentSpeakerIndex = alive.indexOf(currentSpeaker);
@@ -1325,6 +1342,7 @@ public final class GameManager implements Listener {
             broadcast(text("phase.started", Map.of("id", id, "players", players.size())));
             broadcast(text("phase.catastrophe", Map.of("catastrophe", catastrophe)));
             broadcast(text("phase.study", Map.of("seconds", studySeconds)));
+            broadcast(text("phase.study-help", null));
             broadcast(text("phase.host-skip", Map.of("seconds", hostSkipDelaySeconds)));
             broadcast(text("phase.hint-cards", null));
             for (UUID uuid : alive) {
@@ -1358,6 +1376,7 @@ public final class GameManager implements Listener {
             currentSpeakerIndex = 0;
             requestSave();
             broadcast(text("phase.round", Map.of("round", round)));
+            broadcast(text("phase.discussion-help", null));
             nextSpeaker();
         }
 
@@ -1534,6 +1553,7 @@ public final class GameManager implements Listener {
             requestSave();
             broadcast(text("phase.all-revealed", null));
             broadcast(text("phase.open-discussion", Map.of("seconds", openDiscussionSeconds)));
+            broadcast(text("phase.open-discussion-help", null));
             broadcast(text("phase.host-skip", Map.of("seconds", hostSkipDelaySeconds)));
             startCountdown(text("phase.countdown-open-discussion", null), openDiscussionSeconds);
             cancelTask(phaseTask);
@@ -1548,6 +1568,7 @@ public final class GameManager implements Listener {
             requestSave();
             broadcast(text("phase.voting", null));
             broadcast(text("phase.vote-options", Map.of("remaining", skipCount - skipUses)));
+            broadcast(text("phase.voting-help", null));
             broadcast(text("phase.vote-hint", null));
             for (UUID uuid : new ArrayList<>(alive)) {
                 openVoting(uuid);
@@ -1700,6 +1721,7 @@ public final class GameManager implements Listener {
             votes.clear();
             requestSave();
             broadcast(text("vote.tie", Map.of("candidates", candidates)));
+            broadcast(text("vote.runoff-help", null));
             for (UUID uuid : new ArrayList<>(alive)) {
                 openVoting(uuid);
             }
@@ -1757,6 +1779,7 @@ public final class GameManager implements Listener {
             phase = Phase.FINISHED;
             saveState();
             broadcast(text("finish.title", null));
+            broadcast(text("finish.help", null));
             for (UUID uuid : alive) {
                 GamePlayer participant = players.get(uuid);
                 broadcast(text("finish.winner", Map.of("number", participant.number, "player", participant.name)));

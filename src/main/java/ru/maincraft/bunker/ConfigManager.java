@@ -70,7 +70,18 @@ public final class ConfigManager {
     }
 
     public String message(String key, Map<String, ?> placeholders) {
-        String value = messages.getString(key, key);
+        return formatMessage(messages.getString(key, key), placeholders);
+    }
+
+    public List<String> messageList(String path) {
+        List<String> result = new ArrayList<>();
+        for (String value : messages.getStringList(path)) {
+            result.add(formatMessage(value, null));
+        }
+        return result;
+    }
+
+    private String formatMessage(String value, Map<String, ?> placeholders) {
         Map<String, Object> values = new HashMap<>();
         values.put("prefix", messages.getString("prefix", "&6Bnk &f"));
         if (placeholders != null) {
