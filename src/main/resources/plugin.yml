@@ -18,3 +18,5 @@ permissions:
   bunker.admin:
     description: Разрешает запускать и сбрасывать игру Bunker
     default: op
+    children:
+      bunker.use: true
