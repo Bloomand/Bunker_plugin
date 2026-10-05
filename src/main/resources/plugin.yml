@@ -8,7 +8,7 @@ description: Тестовый плагин для экспериментов
 commands:
   bunker:
     description: Управление игрой Bunker
-    usage: /bunker <create|join|leave|status|cards|players|open|start|cancel|vote|pass|games|rules|reload|setarena|deletearena|stopall|help>
+    usage: /bunker <create|join|arenas|leave|status|cards|players|open|start|cancel|vote|pass|games|rules|reload|setarena|deletearena|stopall|help>
     permission: bunker.use
 
 permissions:

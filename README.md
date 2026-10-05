@@ -449,8 +449,8 @@ ID арены должен содержать от 1 до 32 букв, цифр,
 
 Плагин считает настройки некорректными, если:
 
-- `min-players < 6`;
-- `max-players < min-players` или `max-players > 18`;
+- `min-players < 2`;
+- `max-players < min-players` или `max-players > 18` (18 — техническая вместимость текущего меню голосования);
 - `winners-count < 1` или не меньше `min-players`;
 - любой таймер кроме разрешённого нулевого `host-skip-delay-seconds` меньше 1;
 - `skip-count < 0`;

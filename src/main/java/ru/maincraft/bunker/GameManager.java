@@ -98,8 +98,8 @@ public final class GameManager implements Listener {
 
     private boolean validateSettings() {
         boolean valid = true;
-        if (minPlayers < 6 || maxPlayers < minPlayers || maxPlayers > 18) {
-            plugin.getLogger().severe("Некорректные настройки игроков: min-players должен быть не меньше 6, max-players не больше 18 и min-players не больше max-players.");
+        if (minPlayers < 2 || maxPlayers < minPlayers || maxPlayers > 18) {
+            plugin.getLogger().severe("Некорректные настройки игроков: min-players должен быть не меньше 2, max-players не меньше min-players и не больше 18 из-за вместимости меню голосования.");
             valid = false;
         }
         if (winnersCount < 1 || winnersCount >= minPlayers) {
@@ -487,6 +487,11 @@ public final class GameManager implements Listener {
             return true;
         }
 
+        if (args[0].equalsIgnoreCase("arenas")) {
+            arenasCommand(sender);
+            return true;
+        }
+
         if (args[0].equalsIgnoreCase("setarena")) {
             setArenaPoint(sender, args);
             return true;
@@ -562,7 +567,7 @@ public final class GameManager implements Listener {
             return;
         }
 
-        String arenaId = normalizeArenaId(args[1]);
+        String arenaId = args[1].trim();
         if (!isValidArenaId(arenaId)) {
             player.sendMessage(text("arena.invalid-id", null));
             return;
@@ -598,7 +603,7 @@ public final class GameManager implements Listener {
             sender.sendMessage(text("arena.delete-usage", null));
             return;
         }
-        String arenaId = normalizeArenaId(args[1]);
+        String arenaId = args[1].trim();
         if (!isValidArenaId(arenaId)) {
             sender.sendMessage(text("arena.invalid-id", null));
             return;
@@ -660,7 +665,7 @@ public final class GameManager implements Listener {
             }
             return;
         }
-        String arenaId = normalizeArenaId(args[1]);
+        String arenaId = args[1].trim();
         if (!isValidArenaId(arenaId)) {
             sender.sendMessage(text("arena.invalid-id", null));
             return;
@@ -694,7 +699,11 @@ public final class GameManager implements Listener {
 
     private void join(CommandSender sender, Actor actor, String[] args) {
         if (args.length < 2) {
-            sender.sendMessage(text("join.usage", null));
+            if (sender instanceof Player player) {
+                openArenaMenu(player, true);
+            } else {
+                sender.sendMessage(text("join.usage", null));
+            }
             return;
         }
         if (playerGames.containsKey(actor.uuid())) {
@@ -702,7 +711,7 @@ public final class GameManager implements Listener {
             return;
         }
         boolean randomJoin = args[1].equalsIgnoreCase("random");
-        Game game = randomJoin ? randomLobby() : findGameForArena(normalizeArenaId(args[1]));
+        Game game = randomJoin ? randomLobby() : findGameForArena(args[1].trim());
         if (game == null) {
             sender.sendMessage(text(randomJoin ? "arena.no-joinable-games" : "arena.no-active-game",
                     Map.of("id", args[1])));
@@ -861,6 +870,14 @@ public final class GameManager implements Listener {
         }
     }
 
+    private void arenasCommand(CommandSender sender) {
+        if (!(sender instanceof Player player)) {
+            listArenas(sender);
+            return;
+        }
+        openArenaInfoMenu(player);
+    }
+
     private void listArenas(CommandSender sender) {
         if (arenas.isEmpty()) {
             sender.sendMessage(text("arena.none", null));
@@ -894,7 +911,7 @@ public final class GameManager implements Listener {
 
     private boolean isValidArenaId(String id) {
         return id != null && id.length() >= 1 && id.length() <= 32
-                && id.matches("[\\p{L}\\p{N}_-]+");
+                && id.matches("[a-z0-9_-]+");
     }
 
     private String findArenaConfigKey(String normalizedId) {
@@ -921,19 +938,31 @@ public final class GameManager implements Listener {
         openArenaMenu(player, joinMode, 0);
     }
 
+    private void openArenaInfoMenu(Player player) {
+        openArenaInfoMenu(player, 0);
+    }
+
+    private void openArenaInfoMenu(Player player, int page) {
+        openArenaMenu(player, false, true, page);
+    }
+
     private void openArenaMenu(Player player, boolean joinMode, int page) {
+        openArenaMenu(player, joinMode, false, page);
+    }
+
+    private void openArenaMenu(Player player, boolean joinMode, boolean infoMode, int page) {
         List<String> arenaIds = new ArrayList<>();
         for (Arena arena : arenas.values()) {
             Game game = findGameForArena(arena.id);
-            if (!joinMode || (game != null && !game.started)) {
+            if (infoMode || !joinMode || (game != null && !game.started)) {
                 arenaIds.add(arena.id);
             }
         }
         int maxPage = Math.max(0, (arenaIds.size() - 1) / 45);
         page = Math.max(0, Math.min(page, maxPage));
-        ArenaHolder holder = new ArenaHolder(joinMode, page, arenaIds);
+        ArenaHolder holder = new ArenaHolder(joinMode, infoMode, page, arenaIds);
         Inventory inventory = Bukkit.createInventory(holder, 54,
-                text(joinMode ? "arena.join-menu-title" : "arena.create-menu-title", null));
+                text(infoMode ? "arena.info-menu-title" : (joinMode ? "arena.join-menu-title" : "arena.create-menu-title"), null));
         int slot = 0;
         int start = page * 45;
         int end = Math.min(start + 45, arenaIds.size());
@@ -952,7 +981,9 @@ public final class GameManager implements Listener {
             lore.add(text("arena.menu-id", Map.of("id", arena.id)));
             lore.add(ChatColor.WHITE + arena.description);
             lore.add(ChatColor.AQUA + status);
-            if (joinMode) {
+            if (infoMode) {
+                lore.add(text("arena.info-hint", null));
+            } else if (joinMode) {
                 lore.add(text("arena.host", Map.of("player", game.hostPlayer().name)));
                 lore.add(text("arena.waiting", Map.of("players", game.waitingPlayers())));
             } else if (game == null) {
@@ -962,7 +993,7 @@ public final class GameManager implements Listener {
             }
             inventory.setItem(slot++, item(arena.icon, ChatColor.GOLD + arena.name, lore));
         }
-        freeArenas = joinMode
+        freeArenas = infoMode ? 0 : joinMode
                 ? (int) gamesByArena.values().stream().filter(game -> !game.started && game.players.size() < maxPlayers).count()
                 : (int) arenas.values().stream().filter(arena -> findGameForArena(arena.id) == null).count();
         if (page > 0) {
@@ -986,8 +1017,13 @@ public final class GameManager implements Listener {
 
     private void help(CommandSender sender) {
         sender.sendMessage(text("help.title", null));
-        for (String key : List.of("create", "join", "start", "cancel", "status", "cards", "players", "open", "vote", "pass", "games", "rules", "reload", "setarena", "deletearena", "stopall")) {
+        for (String key : List.of("create", "join", "arenas", "leave", "start", "cancel", "status", "cards", "players", "open", "vote", "pass", "games", "rules")) {
             sender.sendMessage(text("help." + key, null));
+        }
+        if (sender.hasPermission("bunker.admin")) {
+            for (String key : List.of("reload", "setarena", "deletearena", "stopall")) {
+                sender.sendMessage(text("help." + key, null));
+            }
         }
     }
 
@@ -1006,11 +1042,22 @@ public final class GameManager implements Listener {
         if (holder instanceof ArenaHolder arenaHolder) {
             event.setCancelled(true);
             if (event.getRawSlot() == 45 && arenaHolder.page > 0) {
-                openArenaMenu(player, arenaHolder.joinMode, arenaHolder.page - 1);
+                if (arenaHolder.infoMode) {
+                    openArenaInfoMenu(player, arenaHolder.page - 1);
+                } else {
+                    openArenaMenu(player, arenaHolder.joinMode, arenaHolder.page - 1);
+                }
                 return;
             }
             if (event.getRawSlot() == 53 && arenaHolder.page < arenaHolder.maxPage()) {
-                openArenaMenu(player, arenaHolder.joinMode, arenaHolder.page + 1);
+                if (arenaHolder.infoMode) {
+                    openArenaInfoMenu(player, arenaHolder.page + 1);
+                } else {
+                    openArenaMenu(player, arenaHolder.joinMode, arenaHolder.page + 1);
+                }
+                return;
+            }
+            if (arenaHolder.infoMode) {
                 return;
             }
             if (!arenaHolder.joinMode && event.getRawSlot() == arenaHolder.randomSlot) {
@@ -1034,6 +1081,10 @@ public final class GameManager implements Listener {
             }
             String arenaId = arenaHolder.arenas.get(event.getRawSlot());
             if (arenaId == null) {
+                return;
+            }
+            if (!arenaHolder.joinMode && findGameForArena(arenaId) != null) {
+                player.sendMessage(text("arena.create-busy-click", null));
                 return;
             }
             player.closeInventory();
@@ -2006,13 +2057,15 @@ public final class GameManager implements Listener {
 
     private static final class ArenaHolder implements InventoryHolder {
         private final boolean joinMode;
+        private final boolean infoMode;
         private final int page;
         private final List<String> arenaIds;
         private final Map<Integer, String> arenas = new LinkedHashMap<>();
         private int randomSlot = -1;
 
-        private ArenaHolder(boolean joinMode, int page, List<String> arenaIds) {
+        private ArenaHolder(boolean joinMode, boolean infoMode, int page, List<String> arenaIds) {
             this.joinMode = joinMode;
+            this.infoMode = infoMode;
             this.page = page;
             this.arenaIds = arenaIds;
         }
