@@ -13,7 +13,9 @@ public final class BunkerPlugin extends JavaPlugin {
         configManager.load();
 
         gameManager = new GameManager(this, configManager);
-        getCommand("bunker").setExecutor(new Commands(gameManager));
+        Commands commands = new Commands(gameManager);
+        getCommand("bunker").setExecutor(commands);
+        getCommand("bunker").setTabCompleter(commands);
         getServer().getPluginManager().registerEvents(gameManager, this);
         gameManager.restore();
         getLogger().info("Bunker включён!");

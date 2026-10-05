@@ -549,6 +549,76 @@ public final class GameManager implements Listener {
         return true;
     }
 
+    /** Автодополнение команд, зависящее от прав и текущей игры игрока. */
+    public List<String> tabComplete(CommandSender sender, String[] args) {
+        if (args.length == 0) {
+            return List.of();
+        }
+        List<String> suggestions = new ArrayList<>();
+        if (args.length == 1) {
+            suggestions.addAll(List.of("create", "join", "arenas", "leave", "start", "cancel", "status",
+                    "cards", "players", "open", "vote", "pass", "continue", "games", "rules"));
+            if (sender.hasPermission("bunker.admin")) {
+                suggestions.addAll(List.of("reload", "setarena", "deletearena", "stopall"));
+            }
+            return filterSuggestions(suggestions, args[0]);
+        }
+
+        String root = args[0].toLowerCase(java.util.Locale.ROOT);
+        if (args.length == 2) {
+            switch (root) {
+                case "create" -> {
+                    if (gameCreationEnabled) {
+                        suggestions.addAll(arenas.values().stream()
+                                .filter(arena -> findGameForArena(arena.id) == null)
+                                .map(arena -> arena.id).toList());
+                    }
+                }
+                case "join" -> {
+                    suggestions.add("random");
+                    suggestions.addAll(gamesByArena.values().stream()
+                            .filter(game -> !game.started && game.players.size() < maxPlayers)
+                            .map(game -> game.arenaId).toList());
+                }
+                case "deletearena", "delarena", "setarena" -> {
+                    if (sender.hasPermission("bunker.admin")) {
+                        suggestions.addAll(arenas.keySet());
+                    }
+                }
+                case "vote" -> {
+                    if (sender instanceof Player player) {
+                        Game game = playerGames.get(player.getUniqueId());
+                        if (game != null) {
+                            suggestions.add("skip");
+                            suggestions.addAll(game.players.values().stream()
+                                    .filter(participant -> game.alive.contains(participant.uuid))
+                                    .map(participant -> Integer.toString(participant.number)).toList());
+                        }
+                    }
+                }
+                default -> {
+                }
+            }
+        } else if (args.length == 3 && root.equals("setarena")
+                && sender.hasPermission("bunker.admin")) {
+            suggestions.add("start");
+        } else if (args.length == 3 && root.equals("arena")
+                && args[1].equalsIgnoreCase("delete")
+                && sender.hasPermission("bunker.admin")) {
+            suggestions.addAll(arenas.keySet());
+        }
+        return filterSuggestions(suggestions, args[args.length - 1]);
+    }
+
+    private List<String> filterSuggestions(List<String> suggestions, String current) {
+        String prefix = current == null ? "" : current.toLowerCase(java.util.Locale.ROOT);
+        return suggestions.stream()
+                .distinct()
+                .filter(value -> value.toLowerCase(java.util.Locale.ROOT).startsWith(prefix))
+                .sorted()
+                .toList();
+    }
+
     private void continueGame(CommandSender sender, Actor actor) {
         Game game = playerGames.get(actor.uuid());
         if (game == null) {
