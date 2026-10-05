@@ -50,6 +50,8 @@ public final class GameManager implements Listener {
     private int votingSeconds;
     private int hostSkipDelaySeconds;
     private int skipCount;
+    private int restoreHostWaitSeconds;
+    private int restoreContinueWaitSeconds;
     private final MessageService messages;
     private final Map<String, Arena> arenas = new LinkedHashMap<>();
 
@@ -88,6 +90,8 @@ public final class GameManager implements Listener {
         votingSeconds = configManager.integer("game.voting-seconds", 60);
         hostSkipDelaySeconds = configManager.integer("game.host-skip-delay-seconds", 30);
         skipCount = configManager.integer("game.skip-count", 2);
+        restoreHostWaitSeconds = configManager.integer("game.restore-host-wait-seconds", 180);
+        restoreContinueWaitSeconds = configManager.integer("game.restore-continue-wait-seconds", 600);
         messages.reload();
         settingsValid = validateSettings();
         loadArenas();
@@ -108,7 +112,8 @@ public final class GameManager implements Listener {
         }
         if (lobbySeconds < 1 || studySeconds < 1 || speechSeconds < 1
                 || openDiscussionSeconds < 1 || votingSeconds < 1
-                || hostSkipDelaySeconds < 0 || skipCount < 0) {
+                || hostSkipDelaySeconds < 0 || skipCount < 0
+                || restoreHostWaitSeconds < 1 || restoreContinueWaitSeconds < 1) {
             plugin.getLogger().severe("Некорректные настройки длительности этапов или количества пропусков.");
             valid = false;
         }
@@ -280,7 +285,7 @@ public final class GameManager implements Listener {
                 for (UUID uuid : game.players.keySet()) {
                     playerGames.put(uuid, game);
                 }
-                game.restartPhaseAfterLoad();
+                game.startRecoveryWait();
             } catch (RuntimeException exception) {
                 if (game != null) {
                     gamesByArena.remove(game.arenaId, game);
@@ -492,6 +497,14 @@ public final class GameManager implements Listener {
             return true;
         }
 
+        if (args[0].equalsIgnoreCase("continue")) {
+            Actor actor = resolveActor(sender);
+            if (actor != null) {
+                continueGame(sender, actor);
+            }
+            return true;
+        }
+
         if (args[0].equalsIgnoreCase("setarena")) {
             setArenaPoint(sender, args);
             return true;
@@ -534,6 +547,23 @@ public final class GameManager implements Listener {
             default -> help(sender);
         }
         return true;
+    }
+
+    private void continueGame(CommandSender sender, Actor actor) {
+        Game game = playerGames.get(actor.uuid());
+        if (game == null) {
+            sender.sendMessage(text("command.not-in-game", null));
+            return;
+        }
+        if (!game.recoveryMode) {
+            sender.sendMessage(text("game.restore-not-waiting", null));
+            return;
+        }
+        if (!actor.uuid().equals(game.host)) {
+            sender.sendMessage(text("game.restore-not-host", null));
+            return;
+        }
+        game.continueAfterRecovery();
     }
 
     private void reloadCommand(CommandSender sender) {
@@ -1019,7 +1049,7 @@ public final class GameManager implements Listener {
 
     private void help(CommandSender sender) {
         sender.sendMessage(text("help.title", null));
-        for (String key : List.of("create", "join", "arenas", "leave", "start", "cancel", "status", "cards", "players", "open", "vote", "pass", "games", "rules")) {
+        for (String key : List.of("create", "join", "arenas", "leave", "start", "cancel", "status", "cards", "players", "open", "vote", "pass", "continue", "games", "rules")) {
             sender.sendMessage(text("help." + key, null));
         }
         if (sender.hasPermission("bunker.admin")) {
@@ -1135,7 +1165,7 @@ public final class GameManager implements Listener {
         Game game = playerGames.get(event.getPlayer().getUniqueId());
         if (game != null) {
             game.playerQuit(event.getPlayer().getUniqueId());
-            if (game.started) {
+            if (game.started && !game.recoveryMode) {
                 playerGames.remove(event.getPlayer().getUniqueId());
             }
         }
@@ -1145,6 +1175,10 @@ public final class GameManager implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         UUID uuid = event.getPlayer().getUniqueId();
         Game game = playerGames.get(uuid);
+        if (game != null && game.recoveryMode) {
+            game.handleRecoveryJoin(uuid);
+            return;
+        }
         if (game != null && game.started && game.arena.start != null) {
             Bukkit.getScheduler().runTask(plugin, () -> {
                 Player player = Bukkit.getPlayer(uuid);
@@ -1233,6 +1267,9 @@ public final class GameManager implements Listener {
         private BukkitTask lobbyTimeout;
         private BukkitTask phaseTask;
         private BukkitTask countdownTask;
+        private BukkitTask recoveryHostTask;
+        private BukkitTask recoveryContinueTask;
+        private final Set<UUID> recoveryReturned = new LinkedHashSet<>();
         private UUID currentSpeaker;
         private int currentSpeakerIndex;
         private boolean currentTurnRevealed;
@@ -1240,6 +1277,7 @@ public final class GameManager implements Listener {
         private int skipUses;
         private boolean runoffVoting;
         private boolean started;
+        private boolean recoveryMode;
         private Phase phase = Phase.LOBBY;
         private String catastrophe;
         private long phaseStartedAtMillis;
@@ -1303,6 +1341,82 @@ public final class GameManager implements Listener {
                 case RESOLVING -> beginDiscussion();
                 case LOBBY, FINISHED -> finish();
             }
+        }
+
+        private void startRecoveryWait() {
+            cancelTasks();
+            recoveryMode = true;
+            recoveryReturned.clear();
+            recoveryHostTask = Bukkit.getScheduler().runTaskLater(plugin,
+                    () -> cancel(text("game.restore-host-timeout", Map.of(
+                            "time", formatDuration(restoreHostWaitSeconds)))),
+                    restoreHostWaitSeconds * 20L);
+            plugin.getLogger().info("Игра " + id + " ожидает возвращения ведущего "
+                    + formatDuration(restoreHostWaitSeconds) + ".");
+        }
+
+        private void handleRecoveryJoin(UUID uuid) {
+            if (!players.containsKey(uuid)) {
+                return;
+            }
+            recoveryReturned.add(uuid);
+            GamePlayer participant = players.get(uuid);
+            if (uuid.equals(host)) {
+                cancelTask(recoveryHostTask);
+                recoveryHostTask = null;
+                cancelTask(recoveryContinueTask);
+                recoveryContinueTask = Bukkit.getScheduler().runTaskLater(plugin,
+                        () -> cancel(text("game.restore-continue-timeout", Map.of(
+                                "time", formatDuration(restoreContinueWaitSeconds)))),
+                        restoreContinueWaitSeconds * 20L);
+                message(uuid, text("game.restore-host-returned", null));
+                message(uuid, text("game.restore-continue-prompt", Map.of(
+                        "time", formatDuration(restoreContinueWaitSeconds))));
+                broadcast(text("game.restore-player-returned", Map.of("player", participant.name)));
+            } else if (!recoveryReturned.contains(host)) {
+                message(uuid, text("game.restore-waiting-host", null));
+            } else {
+                message(uuid, text("game.restore-waiting-continue", null));
+            }
+            requestSave();
+        }
+
+        private void continueAfterRecovery() {
+            cancelTask(recoveryHostTask);
+            cancelTask(recoveryContinueTask);
+            recoveryHostTask = null;
+            recoveryContinueTask = null;
+
+            List<String> missingNames = new ArrayList<>();
+            for (UUID uuid : new ArrayList<>(players.keySet())) {
+                if (recoveryReturned.contains(uuid)) {
+                    continue;
+                }
+                GamePlayer participant = players.remove(uuid);
+                if (participant != null) {
+                    missingNames.add(participant.name);
+                }
+                alive.remove(uuid);
+                votes.remove(uuid);
+                cards.remove(uuid);
+                revealed.remove(uuid);
+                playerGames.remove(uuid);
+            }
+            votes.values().removeIf(number -> players.values().stream().noneMatch(p -> p.number == number));
+            recoveryMode = false;
+            if (!missingNames.isEmpty()) {
+                broadcast(text("game.restore-missing", Map.of("players", String.join(", ", missingNames))));
+            }
+            requestSave();
+
+            int remaining = started ? alive.size() : players.size();
+            if (started && remaining <= winnersCount) {
+                broadcast(text("game.restore-not-enough", Map.of(
+                        "players", remaining, "winners", winnersCount)));
+                finish();
+                return;
+            }
+            restartPhaseAfterLoad();
         }
 
         private void addPlayer(Actor actor) {
@@ -1855,6 +1969,10 @@ public final class GameManager implements Listener {
         }
 
         private void playerQuit(UUID uuid) {
+            if (recoveryMode) {
+                recoveryReturned.remove(uuid);
+                return;
+            }
             if (!started) {
                 if (uuid.equals(host)) {
                     cancel(text("game.cancelled-by-host-quit", null));
@@ -2031,6 +2149,13 @@ public final class GameManager implements Listener {
             cancelTask(lobbyTimeout);
             cancelTask(phaseTask);
             cancelTask(countdownTask);
+            cancelTask(recoveryHostTask);
+            cancelTask(recoveryContinueTask);
+            lobbyTimeout = null;
+            phaseTask = null;
+            countdownTask = null;
+            recoveryHostTask = null;
+            recoveryContinueTask = null;
         }
 
         private void cancelTask(BukkitTask task) {

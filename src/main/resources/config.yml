@@ -11,6 +11,9 @@ game:
   voting-seconds: 60
   host-skip-delay-seconds: 30
   skip-count: 2
+  # После рестарта: ожидание ведущего и подтверждения /bunker continue.
+  restore-host-wait-seconds: 180
+  restore-continue-wait-seconds: 600
 
 arenas:
   bunker:
