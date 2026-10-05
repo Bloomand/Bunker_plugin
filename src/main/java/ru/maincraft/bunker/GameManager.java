@@ -790,7 +790,9 @@ public final class GameManager implements Listener {
             sender.sendMessage(text("command.game-not-started", null));
             return;
         }
-        game.sendCards(actor.uuid(), sender);
+        if (sender instanceof Player player) {
+            game.openCards(player);
+        }
     }
 
     private void players(CommandSender sender, Actor actor) {
@@ -1122,6 +1124,8 @@ public final class GameManager implements Listener {
                 }
             }
         } else if (holder instanceof PlayersHolder) {
+            event.setCancelled(true);
+        } else if (holder instanceof CardsHolder) {
             event.setCancelled(true);
         }
     }
@@ -1928,8 +1932,24 @@ public final class GameManager implements Listener {
             for (Map.Entry<String, Characteristic> entry : playerCards.entrySet()) {
                 Characteristic card = entry.getValue();
                 target.sendMessage(text("cards.card", Map.of("category", entry.getKey(), "name", card.name())));
-                target.sendMessage(text("cards.description", Map.of("description", card.description())));
             }
+        }
+
+        private void openCards(Player viewer) {
+            Map<String, Characteristic> playerCards = cards.get(viewer.getUniqueId());
+            if (playerCards == null) {
+                return;
+            }
+            Inventory inventory = Bukkit.createInventory(new CardsHolder(), 54,
+                    text("cards.menu-title", null));
+            int slot = 0;
+            for (Map.Entry<String, Characteristic> entry : playerCards.entrySet()) {
+                Characteristic card = entry.getValue();
+                inventory.setItem(slot++, item(materialForCategory(entry.getKey()),
+                        text("cards.card", Map.of("category", entry.getKey(), "name", card.name())),
+                        List.of(text("cards.description", Map.of("description", card.description())))));
+            }
+            viewer.openInventory(inventory);
         }
 
         private void openPlayers(Player viewer) {
@@ -2026,7 +2046,8 @@ public final class GameManager implements Listener {
             Player player = Bukkit.getPlayer(uuid);
             if (player != null && (player.getOpenInventory().getTopInventory().getHolder() instanceof SelectionHolder
                     || player.getOpenInventory().getTopInventory().getHolder() instanceof VoteHolder
-                    || player.getOpenInventory().getTopInventory().getHolder() instanceof PlayersHolder)) {
+                    || player.getOpenInventory().getTopInventory().getHolder() instanceof PlayersHolder
+                    || player.getOpenInventory().getTopInventory().getHolder() instanceof CardsHolder)) {
                 player.closeInventory();
             }
         }
@@ -2096,6 +2117,16 @@ public final class GameManager implements Listener {
 
     private static final class PlayersHolder implements InventoryHolder {
         private PlayersHolder() {
+        }
+
+        @Override
+        public Inventory getInventory() {
+            return null;
+        }
+    }
+
+    private static final class CardsHolder implements InventoryHolder {
+        private CardsHolder() {
         }
 
         @Override

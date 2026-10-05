@@ -220,6 +220,7 @@ finish:
   card: "&6%category%: &f%name%"
 
 cards:
+  menu-title: "&3Мои характеристики"
   title: "&bХарактеристики игрока %player%:"
   card: "&6%category%: &f%name%"
   description: "&7  %description%"
